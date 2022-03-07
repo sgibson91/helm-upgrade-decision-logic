@@ -1,4 +1,4 @@
-name: Parsing filepaths to Python
+name: Decide which clusters/hubs to run helm upgrade for and create matrix jobs
 
 on:
   push:
@@ -8,6 +8,8 @@ on:
       - "**.values.yaml"
       - "**cluster.yaml"
       - "helm-charts/basehub/**"
+      - "helm-charts/daskhub/**"
+      - "helm-charts/support/**"
       - ".github/workflows/**"
   pull_request:
     branches:
@@ -16,6 +18,8 @@ on:
       - "**.values.yaml"
       - "**cluster.yaml"
       - "helm-charts/basehub/**"
+      - "helm-charts/daskhub/**"
+      - "helm-charts/support/**"
       - ".github/workflows/**"
 
 jobs:
@@ -28,7 +32,7 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: install dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install pyyaml rich
@@ -39,18 +43,18 @@ jobs:
           format: space-delimited
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: run python script
+      - name: Run python script
         run: |
-          python src/input-from-actions.py "${{ steps.changed-files.outputs.added_modified }}"
+          python helm-upgrade-decision-logic.py "${{ steps.changed-files.outputs.added_modified }}"
 
-      - name: hub matrix jobs
+      - name: Echo hub matrix jobs
         run: |
           echo ${{ toJson(env.HUB_MATRIX_JOBS) }}
 
-      - name: support matrix jobs
+      - name: Echo support matrix jobs
         run: |
           echo ${{ toJson(env.SUPPORT_MATRIX_JOBS) }}
 
-      - name: run python script with pretty-print
+      - name: Run python script with pretty-print
         run: |
-          python src/input-from-actions.py "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
+          python helm-upgrade-decision-logic.py "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
