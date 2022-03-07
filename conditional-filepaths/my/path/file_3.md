@@ -1,3 +1,0 @@
-This is file 3
-
-And this is a change to file 3...
