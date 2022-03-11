@@ -6,6 +6,7 @@ from mymodule.helm_upgrade_decision_logic import (
     generate_hub_matrix_jobs,
     generate_lists_of_filepaths_and_filenames,
     generate_support_matrix_jobs,
+    discover_modified_common_files,
 )
 
 case = TestCase()
@@ -273,3 +274,16 @@ def test_generate_support_matrix_jobs_all_clusters():
 
     assert "provider" in result_matrix_jobs[0].keys()
     assert "cluster_name" in result_matrix_jobs[0].keys()
+
+
+def test_discover_modified_common_files_hub_helm_charts():
+    input_path_basehub = [os.path.join("helm-charts", "basehub", "Chart.yaml")]
+    input_path_daskhub = [os.path.join("helm-charts", "daskhub", "Chart.yaml")]
+
+    basehub_upgrade_all_clusters, basehub_upgrade_all_hubs = discover_modified_common_files(input_path_basehub)
+    daskhub_upgrade_all_clusters, daskhub_upgrade_all_hubs = discover_modified_common_files(input_path_daskhub)
+
+    assert not basehub_upgrade_all_clusters
+    assert basehub_upgrade_all_hubs
+    assert not daskhub_upgrade_all_clusters
+    assert daskhub_upgrade_all_hubs
