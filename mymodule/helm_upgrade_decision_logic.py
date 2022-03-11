@@ -95,22 +95,20 @@ def generate_hub_matrix_jobs(
             "Common config has been updated. Generating jobs to upgrade all hubs on ALL clusters."
         )
 
-        # Find parent directory of all cluster directories
-        cluster_config_root = list({filepath.parent for filepath in cluster_filepaths})
+        # Determine if we are running a test or not
+        test_env = os.getenv("RUN_ENV", False)
 
-        if len(cluster_config_root) == 1:
-            # Overwrite cluster_filepaths to contain paths to all clusters
+        # Overwrite cluster_filepaths to contain paths to all clusters
+        if test_env:
             cluster_filepaths = [
                 filepath.parent
-                for filepath in cluster_config_root[0].glob("**/cluster.yaml")
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" in str(filepath)
             ]
-        elif len(cluster_config_root) == 0:
-            raise ValueError("No cluster-specific directories found!")
         else:
-            raise ValueError(
-                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?\n"
-                + "\n- ".join(cluster_config_root)
-            )
+            cluster_filepaths = [
+                filepath.parent
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" not in str(filepath)
+            ]
 
     for cluster_filepath in cluster_filepaths:
         if not upgrade_all_hubs:
@@ -193,24 +191,22 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
 
     if upgrade_all_clusters:
         print(
-            "Common config has been updated. Generating jobs to upgrade all hubs on all clusters."
+            "Common config has been updated. Generating jobs to upgrade support chart on ALL clusters."
         )
+        # Determine if we are running a test or not
+        test_env = os.getenv("RUN_ENV", False)
 
-        # Find parent directory of all cluster directories
-        dirpath_root = list({filepath.parent for filepath in modified_dirpaths})
-
-        if len(dirpath_root) == 1:
-            # Overwrite modified_dirpaths to contain paths to all clusters
+        # Overwrite cluster_filepaths to contain paths to all clusters
+        if test_env:
             modified_dirpaths = [
-                filepath.parent for filepath in dirpath_root[0].glob("**/cluster.yaml")
+                filepath.parent
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" in str(filepath)
             ]
-        elif len(dirpath_root) == 0:
-            raise ValueError("No cluster-specific directories found!")
         else:
-            raise ValueError(
-                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?\n"
-                + "\n- ".join(dirpath_root)
-            )
+            modified_dirpaths = [
+                filepath.parent
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" not in str(filepath)
+            ]
 
     for cluster_filepath in modified_dirpaths:
         # Read in the cluster.yaml file
