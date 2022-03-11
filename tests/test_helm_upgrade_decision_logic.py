@@ -1,11 +1,14 @@
 import os
 from pathlib import Path
+from unittest import TestCase
 
 from mymodule.helm_upgrade_decision_logic import (
     generate_hub_matrix_jobs,
     generate_lists_of_filepaths_and_filenames,
     generate_support_matrix_jobs,
 )
+
+case = TestCase()
 
 
 def test_generate_lists_of_filepaths_and_filenames():
@@ -35,7 +38,7 @@ def test_generate_lists_of_filepaths_and_filenames():
         target_support_files,
     ) = generate_lists_of_filepaths_and_filenames(input_filepaths)
 
-    assert target_cluster_filepaths == expected_cluster_filepaths
+    case.assertCountEqual(target_cluster_filepaths, expected_cluster_filepaths)
     assert target_cluster_files == expected_cluster_files
     assert target_values_files == expected_values_files
     assert target_support_files == expected_support_files
@@ -61,7 +64,7 @@ def test_generate_hub_matrix_jobs_one_cluster_one_hub():
         input_cluster_filepaths, input_cluster_files, input_values_files
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -87,7 +90,7 @@ def test_generate_hub_matrix_jobs_one_cluster_many_hubs():
         input_cluster_filepaths, input_cluster_files, input_values_files
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -115,7 +118,7 @@ def test_generate_hub_matrix_jobs_one_cluster_all_hubs():
         input_cluster_filepaths, input_cluster_files, input_values_files
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -144,7 +147,7 @@ def test_generate_hub_matrix_jobs_many_clusters_one_hub():
         input_cluster_filepaths, input_cluster_files, input_values_files
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -177,7 +180,7 @@ def test_generate_hub_matrix_jobs_many_clusters_many_hubs():
         input_cluster_filepaths, input_cluster_files, input_values_files
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -207,7 +210,7 @@ def test_generate_hub_matrix_jobs_all_clusters_all_hubs():
         upgrade_all_hubs=True,
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -223,7 +226,7 @@ def test_generate_support_matrix_jobs_one_cluster():
 
     result_matrix_jobs = generate_support_matrix_jobs(input_dirpaths)
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -244,7 +247,7 @@ def test_generate_support_matrix_jobs_many_clusters():
 
     result_matrix_jobs = generate_support_matrix_jobs(input_dirpaths)
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
@@ -264,7 +267,7 @@ def test_generate_support_matrix_jobs_all_clusters():
         input_dirpaths, upgrade_all_clusters=True
     )
 
-    assert result_matrix_jobs == expected_matrix_jobs
+    case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
     assert isinstance(result_matrix_jobs[0], dict)
 
