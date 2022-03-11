@@ -117,7 +117,9 @@ def generate_hub_matrix_jobs(
                 for filepath in cluster_config_root[0].glob("**/cluster.yaml")
             ]
         else:
-            raise ValueError()
+            raise ValueError(
+                "More than one tree containing cluster.yaml files. Are we duplicating file structure?"
+            )
 
     for cluster_filepath in cluster_filepaths:
         if not upgrade_all_hubs:
@@ -212,7 +214,9 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
                 filepath.parent for filepath in dirpath_root[0].glob("**/cluster.yaml")
             ]
         else:
-            raise ValueError()
+            raise ValueError(
+                "More than one tree containing cluster.yaml files. Are we duplicating file structure?"
+            )
 
     for cluster_filepath in modified_dirpaths:
         # Read in the cluster.yaml file
