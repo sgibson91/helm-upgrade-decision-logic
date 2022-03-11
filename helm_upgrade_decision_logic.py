@@ -114,7 +114,7 @@ def generate_hub_matrix_jobs(
             # Check if this cluster file has been modified. If so, set
             # upgrade_all_hubs_on_this_cluster to True
             intersection = modified_cluster_files.intersection(
-                [cluster_filepath.joinpath("cluster.yaml")]
+                [str(cluster_filepath.joinpath("cluster.yaml"))]
             )
             if len(intersection) > 0:
                 print(
@@ -161,8 +161,8 @@ def generate_hub_matrix_jobs(
                     matrix_job["hub_name"] = hub["name"]
                     matrix_jobs.append(matrix_job)
 
-            # Reset upgrade_all_hubs_on_this_cluster for the next iteration
-            upgrade_all_hubs_on_this_cluster = False
+        # Reset upgrade_all_hubs_on_this_cluster for the next iteration
+        upgrade_all_hubs_on_this_cluster = False
 
     return matrix_jobs
 

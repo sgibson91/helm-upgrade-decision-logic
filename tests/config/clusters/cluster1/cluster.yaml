@@ -7,3 +7,6 @@ hubs:
   - name: hub2
     helm_chart_values_files:
       - hub2.values.yaml
+  - name: hub3
+    helm_chart_values_files:
+      - hub3.values.yaml
