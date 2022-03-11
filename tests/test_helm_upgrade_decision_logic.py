@@ -121,3 +121,95 @@ def test_generate_hub_matrix_jobs_one_cluster_all_hubs():
     assert "provider" in result_matrix_jobs[0].keys()
     assert "cluster_name" in result_matrix_jobs[0].keys()
     assert "hub_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_hub_matrix_jobs_many_clusters_one_hub():
+    input_cluster_filepaths = [
+        Path("tests/config/clusters/cluster1"),
+        Path("tests/config/clusters/cluster2"),
+    ]
+    input_cluster_files = set()
+    input_values_files = {
+        os.path.join("tests", "config", "clusters", "cluster1", "hub1.values.yaml"),
+        os.path.join("tests", "config", "clusters", "cluster2", "hub1.values.yaml"),
+    }
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub1"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub1"},
+    ]
+
+    result_matrix_jobs = generate_hub_matrix_jobs(
+        input_cluster_filepaths, input_cluster_files, input_values_files
+    )
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+    assert "hub_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_hub_matrix_jobs_many_clusters_many_hubs():
+    input_cluster_filepaths = [
+        Path("tests/config/clusters/cluster1"),
+        Path("tests/config/clusters/cluster2"),
+    ]
+    input_cluster_files = set()
+    input_values_files = {
+        os.path.join("tests", "config", "clusters", "cluster1", "hub1.values.yaml"),
+        os.path.join("tests", "config", "clusters", "cluster1", "hub2.values.yaml"),
+        os.path.join("tests", "config", "clusters", "cluster2", "hub1.values.yaml"),
+        os.path.join("tests", "config", "clusters", "cluster2", "hub2.values.yaml"),
+    }
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub1"},
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub2"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub1"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub2"},
+    ]
+
+    result_matrix_jobs = generate_hub_matrix_jobs(
+        input_cluster_filepaths, input_cluster_files, input_values_files
+    )
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+    assert "hub_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_hub_matrix_jobs_all_clusters_all_hubs():
+    input_cluster_filepaths = [Path("tests/config/clusters/cluster1")]
+    input_cluster_files = set()
+    input_values_files = {}
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub1"},
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub2"},
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub3"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub1"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub2"},
+        {"provider": "aws", "cluster_name": "cluster2", "hub_name": "hub3"},
+    ]
+
+    result_matrix_jobs = generate_hub_matrix_jobs(
+        input_cluster_filepaths,
+        input_cluster_files,
+        input_values_files,
+        upgrade_all_hubs=True,
+    )
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+    assert "hub_name" in result_matrix_jobs[0].keys()

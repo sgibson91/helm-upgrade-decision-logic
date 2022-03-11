@@ -106,8 +106,18 @@ def generate_hub_matrix_jobs(
         print(
             "Common config has been updated. Generating jobs to upgrade all hubs on ALL clusters."
         )
-        # Overwrite cluster_filepaths to contain paths to all clusters
-        cluster_filepaths = Path(os.getcwd()).glob("*/cluster.yaml")
+
+        # Find parent directory of all cluster directories
+        cluster_config_root = list({filepath.parent for filepath in cluster_filepaths})
+
+        if len(cluster_config_root) == 1:
+            # Overwrite cluster_filepaths to contain paths to all clusters
+            cluster_filepaths = [
+                filepath.parent
+                for filepath in cluster_config_root[0].glob("**/cluster.yaml")
+            ]
+        else:
+            raise ValueError()
 
     for cluster_filepath in cluster_filepaths:
         if not upgrade_all_hubs:
