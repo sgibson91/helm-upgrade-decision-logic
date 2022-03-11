@@ -1,0 +1,6 @@
+name: cluster1
+provider: gcp
+hubs:
+  - name: hub1
+    helm_chart_values_files:
+      - hub1.values.yaml
