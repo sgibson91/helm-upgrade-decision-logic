@@ -104,9 +104,12 @@ def generate_hub_matrix_jobs(
                 filepath.parent
                 for filepath in cluster_config_root[0].glob("**/cluster.yaml")
             ]
+        elif len(cluster_config_root) == 0:
+            raise ValueError("No cluster-specific directories found!")
         else:
             raise ValueError(
-                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?"
+                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?\n"
+                + "\n- ".join(cluster_config_root)
             )
 
     for cluster_filepath in cluster_filepaths:
@@ -201,9 +204,12 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
             modified_dirpaths = [
                 filepath.parent for filepath in dirpath_root[0].glob("**/cluster.yaml")
             ]
+        elif len(dirpath_root) == 0:
+            raise ValueError("No cluster-specific directories found!")
         else:
             raise ValueError(
-                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?"
+                "Found more than one tree containing cluster.yaml files. Are we duplicating file structure?\n"
+                + "\n- ".join(dirpath_root)
             )
 
     for cluster_filepath in modified_dirpaths:
