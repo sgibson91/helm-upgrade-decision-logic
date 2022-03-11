@@ -22,6 +22,8 @@ def generate_lists_of_filepaths_and_filenames(input_file_list: list):
     - A set of all added/modified files matching the pattern "*/*.values.yaml"
     - A set of all added/modified files matching the pattern "*/support.values.yaml"
 
+    Note: "cluster folders" are those that contain a cluster.yaml file.
+
     Args:
         input_file_list (list[str]): A list of files that have been added or modified
             in a GitHub Pull Request
@@ -67,6 +69,8 @@ def generate_hub_matrix_jobs(
     files have been modified. To be parsed to GitHub Actions in order to generate
     parallel jobs in a matrix.
 
+    Note: "cluster folders" are those that contain a cluster.yaml file.
+
     Args:
         cluster_filepaths (list[path obj]): List of absolute paths to cluster folders
         modified_cluster_files (set[list]): A set of all */cluster.yaml files that have
@@ -95,22 +99,31 @@ def generate_hub_matrix_jobs(
             "Common config has been updated. Generating jobs to upgrade all hubs on ALL clusters."
         )
 
-        # Determine if we are running a test or not
+        # Determine if we are running a test or not. We set this env var to true in the
+        # pytest.ini file so it is set when the package is tested.
         test_env = os.getenv("RUN_ENV", False)
 
         # Overwrite cluster_filepaths to contain paths to all clusters
         if test_env:
+            # We are running a test via pytest. We only want to focus on the cluster
+            # folders nested under the `tests/` folder.
             cluster_filepaths = [
                 filepath.parent
                 for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" in str(filepath)
             ]
         else:
+            # We are NOT running a test via pytest. We want to explicitly ignore the
+            # cluster folders nested under the `tests/` folder.
             cluster_filepaths = [
                 filepath.parent
                 for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" not in str(filepath)
             ]
 
     for cluster_filepath in cluster_filepaths:
+        # Read in the cluster.yaml file
+        with open(cluster_filepath.joinpath("cluster.yaml")) as f:
+            cluster_config = yaml.safe_load(f)
+
         if not upgrade_all_hubs:
             # Check if this cluster file has been modified. If so, set
             # upgrade_all_hubs_on_this_cluster to True
@@ -119,13 +132,9 @@ def generate_hub_matrix_jobs(
             )
             if len(intersection) > 0:
                 print(
-                    "This cluster.yaml file has been modified. Generating jobs to upgrade all hubs on THIS cluster."
+                    f"This cluster.yaml file has been modified. Generating jobs to upgrade all hubs on THIS cluster: {cluster_config.get("name", {})}"
                 )
                 upgrade_all_hubs_on_this_cluster = True
-
-        # Read in the cluster.yaml file
-        with open(cluster_filepath.joinpath("cluster.yaml")) as f:
-            cluster_config = yaml.safe_load(f)
 
         # Generate template dictionary for all jobs associated with this cluster
         cluster_info = {
@@ -173,6 +182,8 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
     upgrade of their support chart based on whether their cluster.yaml file or
     associated support chart values files have been modified. To be parsed to GitHub
     Actions in order to generate parallel jobs in a matrix.
+
+    Note: "cluster folders" are those that contain a cluster.yaml file.
 
     Args:
         modified_dirpaths (list[path obj]): List of absolute paths to cluster folders
@@ -332,13 +343,14 @@ def evaluate_condition_for_upgrading_support_chart(
     resulting set.
 
     Args:
-        modified_cluster_files (set[str]): _description_
-        modified_support_files (set[str]): _description_
+        modified_cluster_files (set[str]): A set of paths to modified cluster.yaml files
+        modified_support_files (set[str]): A set of paths to modified support.values.yaml
+            files
 
     Returns:
-        list[path obj]: A list of filepaths that contain modified cluster.yaml files or
-            modified support.values.yaml files. We will therefore generate jobs to
-            upgrade the support chart on these clusters.
+        list[path obj]: A list of filepaths to folders that contain modified cluster.yaml
+            files or modified support.values.yaml files. We will therefore generate jobs
+            to upgrade the support chart on these clusters.
     """
     modified_cluster_filepaths = {
         Path(filepath).parent for filepath in modified_cluster_files
