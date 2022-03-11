@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from mymodule.helm_upgrade_decision_logic import (
     discover_modified_common_files,
+    evaluate_condition_for_upgrading_support_chart,
     generate_hub_matrix_jobs,
     generate_lists_of_filepaths_and_filenames,
     generate_support_matrix_jobs,
@@ -302,3 +303,23 @@ def test_discover_modified_common_files_support_helm_chart():
 
     assert upgrade_all_clusters
     assert not upgrade_all_hubs
+
+
+def test_evaluate_condition_for_upgrading_support_chart():
+    input_cluster_files = {
+        os.path.join("config", "clusters", "cluster1", "cluster.yaml")
+    }
+    input_support_files = {
+        os.path.join("config", "clusters", "cluster2", "support.values.yaml")
+    }
+
+    expected_dirpaths = [
+        Path("config/clusters/cluster1"),
+        Path("config/clusters/cluster2"),
+    ]
+
+    res_dirpaths = evaluate_condition_for_upgrading_support_chart(
+        input_cluster_files, input_support_files
+    )
+
+    case.assertCountEqual(res_dirpaths, expected_dirpaths)

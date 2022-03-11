@@ -320,6 +320,37 @@ def discover_modified_common_files(modified_paths: list):
     return upgrade_all_clusters, upgrade_all_hubs
 
 
+def evaluate_condition_for_upgrading_support_chart(
+    modified_cluster_files, modified_support_files
+):
+    """We want to upgrade the support chart on a cluster that has a modified cluster.yaml
+    file or a modified associated support.values.yaml file. We calculate this by
+    taking the Union of the folder paths of both modified_cluster_files and
+    modified_support_files so we can generate jobs to upgrade all clusters in the
+    resulting set.
+
+    Args:
+        modified_cluster_files (set[str]): _description_
+        modified_support_files (set[str]): _description_
+
+    Returns:
+        list[path obj]: A list of filepaths that contain modified cluster.yaml files or
+            modified support.values.yaml files. We will therefore generate jobs to
+            upgrade the support chart on these clusters.
+    """
+    modified_cluster_filepaths = {
+        Path(filepath).parent for filepath in modified_cluster_files
+    }
+    modified_support_filepaths = {
+        Path(filepath).parent for filepath in modified_support_files
+    }
+    modified_paths_for_support_upgrade = list(
+        modified_cluster_filepaths.union(modified_support_filepaths)
+    )
+
+    return modified_paths_for_support_upgrade
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -359,19 +390,8 @@ def main():
         upgrade_all_hubs=upgrade_all_hubs,
     )
 
-    # We want to upgrade the support chart on a cluster that has a modified cluster.yaml
-    # file or a modified associated support.values.yaml file. We calculate this by
-    # taking the Union of the folder paths of both modified_cluster_files and
-    # modified_support_files and generating jobs to upgrade all clusters in the
-    # resulting set.
-    modified_cluster_filepaths = {
-        Path(filepath).parent for filepath in target_cluster_files
-    }
-    modified_support_filepaths = {
-        Path(filepath).parent for filepath in target_support_files
-    }
-    modified_paths_for_support_upgrade = list(
-        modified_cluster_filepaths.union(modified_support_filepaths)
+    modified_paths_for_support_upgrade = evaluate_condition_for_upgrading_support_chart(
+        target_cluster_files, target_support_files
     )
 
     # Generate a job matrix of all clusters that need their support chart upgrading
