@@ -43,3 +43,27 @@ def test_generate_lists_of_filepaths_and_filenames():
     assert isinstance(target_cluster_files, set)
     assert isinstance(target_values_files, set)
     assert isinstance(target_support_files, set)
+
+
+def test_generate_hub_matrix_jobs_one_cluster_one_hub():
+    input_cluster_filepaths = [Path("tests/config/clusters/cluster1")]
+    input_cluster_files = set()
+    input_values_files = {
+        os.path.join("tests", "config", "clusters", "cluster1", "hub1.values.yaml")
+    }
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1", "hub_name": "hub1"}
+    ]
+
+    result_matrix_jobs = generate_hub_matrix_jobs(
+        input_cluster_filepaths, input_cluster_files, input_values_files
+    )
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+    assert "hub_name" in result_matrix_jobs[0].keys()
