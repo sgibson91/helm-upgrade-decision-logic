@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from .helm_upgrade_decision_logic import (
+from mymodule.helm_upgrade_decision_logic import (
     generate_hub_matrix_jobs,
     generate_lists_of_filepaths_and_filenames,
     generate_support_matrix_jobs,
