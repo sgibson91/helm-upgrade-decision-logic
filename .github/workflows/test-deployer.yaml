@@ -2,10 +2,14 @@ name: Run the deployer's tests
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "**.py"
       - "tests/**"
   pull_request:
+    branches:
+      - main
     paths:
       - "**.py"
       - "tests/**"
