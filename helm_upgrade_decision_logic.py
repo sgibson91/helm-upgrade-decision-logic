@@ -202,8 +202,17 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
         print(
             "Common config has been updated. Generating jobs to upgrade all hubs on all clusters."
         )
-        # Overwrite modified_dirpaths to contain paths to all clusters
-        modified_dirpaths = Path(os.getcwd()).glob("*/cluster.yaml")
+
+        # Find parent directory of all cluster directories
+        dirpath_root = list({filepath.parent for filepath in modified_dirpaths})
+
+        if len(dirpath_root) == 1:
+            # Overwrite modified_dirpaths to contain paths to all clusters
+            modified_dirpaths = [
+                filepath.parent for filepath in dirpath_root[0].glob("**/cluster.yaml")
+            ]
+        else:
+            raise ValueError()
 
     for cluster_filepath in modified_dirpaths:
         # Read in the cluster.yaml file

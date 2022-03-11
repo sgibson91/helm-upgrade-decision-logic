@@ -1,5 +1,8 @@
 name: cluster2
 provider: aws
+support:
+  helm_chart_values_files:
+    - support.values.yaml
 hubs:
   - name: hub1
     helm_chart_values_files:

@@ -4,6 +4,7 @@ from pathlib import Path
 from helm_upgrade_decision_logic import (
     generate_hub_matrix_jobs,
     generate_lists_of_filepaths_and_filenames,
+    generate_support_matrix_jobs,
 )
 
 
@@ -213,3 +214,59 @@ def test_generate_hub_matrix_jobs_all_clusters_all_hubs():
     assert "provider" in result_matrix_jobs[0].keys()
     assert "cluster_name" in result_matrix_jobs[0].keys()
     assert "hub_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_support_matrix_jobs_one_cluster():
+    input_dirpaths = [Path("tests/config/clusters/cluster1")]
+
+    expected_matrix_jobs = [{"provider": "gcp", "cluster_name": "cluster1"}]
+
+    result_matrix_jobs = generate_support_matrix_jobs(input_dirpaths)
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_support_matrix_jobs_many_clusters():
+    input_dirpaths = [
+        Path("tests/config/clusters/cluster1"),
+        Path("tests/config/clusters/cluster2"),
+    ]
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1"},
+        {"provider": "aws", "cluster_name": "cluster2"},
+    ]
+
+    result_matrix_jobs = generate_support_matrix_jobs(input_dirpaths)
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
+
+
+def test_generate_support_matrix_jobs_all_clusters():
+    input_dirpaths = [Path("tests/config/clusters/cluster1")]
+
+    expected_matrix_jobs = [
+        {"provider": "gcp", "cluster_name": "cluster1"},
+        {"provider": "aws", "cluster_name": "cluster2"},
+    ]
+
+    result_matrix_jobs = generate_support_matrix_jobs(
+        input_dirpaths, upgrade_all_clusters=True
+    )
+
+    assert result_matrix_jobs == expected_matrix_jobs
+    assert isinstance(result_matrix_jobs, list)
+    assert isinstance(result_matrix_jobs[0], dict)
+
+    assert "provider" in result_matrix_jobs[0].keys()
+    assert "cluster_name" in result_matrix_jobs[0].keys()
