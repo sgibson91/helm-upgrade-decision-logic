@@ -45,7 +45,7 @@ jobs:
 
       - name: Run python script
         run: |
-          python helm-upgrade-decision-logic.py "${{ steps.changed-files.outputs.added_modified }}"
+          python helm_upgrade_decision_logic.py "${{ steps.changed-files.outputs.added_modified }}"
 
       - name: Echo hub matrix jobs
         run: |
@@ -57,4 +57,4 @@ jobs:
 
       - name: Run python script with pretty-print
         run: |
-          python helm-upgrade-decision-logic.py "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
+          python helm_upgrade_decision_logic.py "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
