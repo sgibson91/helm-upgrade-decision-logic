@@ -39,7 +39,7 @@ def generate_lists_of_filepaths_and_filenames(input_file_list: list):
             in a GitHub Pull Request
 
     Returns:
-        list[str]: A list of unique filepaths to cluster folders
+        list[path obj]: A list of unique filepaths to cluster folders
         set[str]: A set of all files matching the pattern "*/cluster.yaml"
         set[str]: A set of all files matching the pattern "*/*.values.yaml"
         set[str]: A set of all files matching the pattern "*/support.values.yaml"
@@ -96,7 +96,6 @@ def generate_hub_matrix_jobs(
     """
     # Empty list to store the matrix job definitions in
     matrix_jobs = []
-    copy_input = cluster_filepaths.copy()
 
     # This flag will allow us to establish when a cluster.yaml file has been updated
     # and all hubs on that cluster should be upgraded, without also upgrading all hubs
