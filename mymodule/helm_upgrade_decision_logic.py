@@ -109,14 +109,16 @@ def generate_hub_matrix_jobs(
             # folders nested under the `tests/` folder.
             cluster_filepaths = [
                 filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" in str(filepath)
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
+                if "tests/" in str(filepath)
             ]
         else:
             # We are NOT running a test via pytest. We want to explicitly ignore the
             # cluster folders nested under the `tests/` folder.
             cluster_filepaths = [
                 filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" not in str(filepath)
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
+                if "tests/" not in str(filepath)
             ]
 
     for cluster_filepath in cluster_filepaths:
@@ -132,7 +134,7 @@ def generate_hub_matrix_jobs(
             )
             if len(intersection) > 0:
                 print(
-                    f"This cluster.yaml file has been modified. Generating jobs to upgrade all hubs on THIS cluster: {cluster_config.get("name", {})}"
+                    f"This cluster.yaml file has been modified. Generating jobs to upgrade all hubs on THIS cluster: {cluster_config.get('name', {})}"
                 )
                 upgrade_all_hubs_on_this_cluster = True
 
@@ -211,12 +213,14 @@ def generate_support_matrix_jobs(modified_dirpaths, upgrade_all_clusters=False):
         if test_env:
             modified_dirpaths = [
                 filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" in str(filepath)
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
+                if "tests/" in str(filepath)
             ]
         else:
             modified_dirpaths = [
                 filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml") if "tests/" not in str(filepath)
+                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
+                if "tests/" not in str(filepath)
             ]
 
     for cluster_filepath in modified_dirpaths:
