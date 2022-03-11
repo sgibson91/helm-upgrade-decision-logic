@@ -359,7 +359,8 @@ def main():
         upgrade_all_clusters=upgrade_all_clusters,
     )
 
-    if args.pretty_print:
+    env = os.environ.get("GITHUB_ENV", {})
+    if args.pretty_print or not env:
         pretty_print_matrix_jobs(hub_matrix_jobs, support_matrix_jobs)
     else:
         # Add these matrix jobs to the GitHub environment for use in another job
