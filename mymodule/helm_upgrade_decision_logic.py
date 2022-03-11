@@ -7,18 +7,6 @@ import yaml
 from rich.console import Console
 from rich.table import Table
 
-# If any of the following filepaths have changed, we should update all hubs on all clusters
-common_filepaths = [
-    "deployer/*",
-    "helm-charts/basehub/*",
-    "helm-charts/daskhub/*",
-    ".github/actions/deploy/*",
-    "requirements.txt",
-    ".github/workflows/deploy-hubs.yaml",
-]
-# If this filepath has changes, we should update the support chart on all clusters
-support_chart_filepath = "helm-charts/support/*"
-
 
 def convert_string_to_list(full_str: str) -> list:
     """
@@ -289,6 +277,49 @@ def pretty_print_matrix_jobs(hub_matrix_jobs, support_matrix_jobs):
     console.print(hub_table)
 
 
+def discover_modified_common_files(modified_paths: list):
+    """There are certain common files which, if modified, we should upgrade all hubs
+    and/or all clusters appropriately. These common files include the helm charts we
+    deploy, as well as the GitHub Actions and deployer package we use to deploy them.
+
+    Args:
+        modified_paths (list[str]): The list of files that have been added or modified
+            in a given GitHub Pull Request.
+
+    Returns:
+        upgrade_all_clusters (bool): Whether or not all clusters should be upgraded
+            since the support chart has changed
+        upgrade_all_hubs (bool): Whether or not all hubs on all clusters should be
+            upgraded since a core piece of infrastructure has changed
+    """
+    # If any of the following filepaths have changed, we should update all hubs on all clusters
+    common_filepaths = [
+        "deployer/*",
+        "helm-charts/basehub/*",
+        "helm-charts/daskhub/*",
+        ".github/actions/deploy/*",
+        "requirements.txt",
+        ".github/workflows/deploy-hubs.yaml",
+    ]
+    # If this filepath has changes, we should update the support chart on all clusters
+    support_chart_filepath = "helm-charts/support/*"
+
+    # Discover if the support chart has been modified
+    support_matches = []
+    support_matches.extend(fnmatch.filter(modified_paths, support_chart_filepath))
+    upgrade_all_clusters = len(support_matches) > 0
+
+    # Discover if any common config has been modified
+    common_config_matches = []
+    for common_filepath_pattern in common_filepaths:
+        common_config_matches.extend(
+            fnmatch.filter(modified_paths, common_filepath_pattern)
+        )
+    upgrade_all_hubs = len(common_config_matches) > 0
+
+    return upgrade_all_clusters, upgrade_all_hubs
+
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -306,19 +337,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Discover if the support chart has been modified and all clusters should be upgraded
-    support_matches = []
-    support_matches.extend(fnmatch.filter(args.filepaths, support_chart_filepath))
-    upgrade_all_clusters = len(support_matches) > 0
-
-    # Discover if any common config has been modified and all hubs on all clusters should
-    # be upgraded
-    common_config_matches = []
-    for common_filepath_pattern in common_filepaths:
-        common_config_matches.extend(
-            fnmatch.filter(args.filepaths, common_filepath_pattern)
-        )
-    upgrade_all_hubs = len(common_config_matches) > 0
+    upgrade_all_clusters, upgrade_all_hubs = discover_modified_common_files(
+        args.filepaths
+    )
 
     # Generate a list of filepaths to target cluster folders, and sets of affected
     # cluster.yaml files, hub helm chart values files, and support helm chart values
