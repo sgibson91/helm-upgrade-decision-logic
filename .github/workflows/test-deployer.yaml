@@ -3,11 +3,11 @@ name: Run the deployer's tests
 on:
   push:
     paths:
-      - "**/deployer/**"
+      - "**.py"
       - "tests/**"
   pull_request:
     paths:
-      - "**/deployer/**"
+      - "**.py"
       - "tests/**"
 
 jobs:
