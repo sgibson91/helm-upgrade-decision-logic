@@ -89,6 +89,7 @@ def get_unique_cluster_filepaths(added_or_modified_files: list):
         filepaths = [
             Path(filepath).parent
             for filepath in added_or_modified_files
+            if Path(filepath).parent.joinpath("cluster.yaml").is_file()
             if "tests/" in filepath
         ]
     else:
@@ -97,6 +98,7 @@ def get_unique_cluster_filepaths(added_or_modified_files: list):
         filepaths = [
             Path(filepath).parent
             for filepath in added_or_modified_files
+            if Path(filepath).parent.joinpath("cluster.yaml").is_file()
             if "tests/" not in filepath
         ]
 
