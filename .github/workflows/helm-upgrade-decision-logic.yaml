@@ -11,6 +11,7 @@ on:
       - "helm-charts/daskhub/**"
       - "helm-charts/support/**"
       - ".github/workflows/**"
+      - "mymodule/**"
   pull_request:
     branches:
       - main
@@ -21,9 +22,10 @@ on:
       - "helm-charts/daskhub/**"
       - "helm-charts/support/**"
       - ".github/workflows/**"
+      - "mymodule/**"
 
 jobs:
-  filepaths:
+  generate-jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -48,15 +50,21 @@ jobs:
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}"
 
-      - name: Echo hub matrix jobs
-        run: |
-          echo ${{ toJson(env.HUB_MATRIX_JOBS) }}
-
-      - name: Echo support matrix jobs
-        run: |
-          echo ${{ toJson(env.SUPPORT_MATRIX_JOBS) }}
-
       - name: Run python script with pretty-print
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
+
+  support-jobs:
+    runs-on: ubuntu-latest
+    needs: generate-jobs
+    steps:
+      - run: |
+          echo ${{ env.SUPPORT_MATRIX_JOBS}}
+
+  hub-jobs:
+    runs-on: ubuntu-latest
+    needs: generate-jobs
+    steps:
+      - run: |
+          echo ${{ env.HUB_MATRIX_JOBS}}
