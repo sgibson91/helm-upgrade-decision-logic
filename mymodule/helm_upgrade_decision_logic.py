@@ -42,11 +42,9 @@ def discover_modified_common_files(modified_paths: list):
     # If any of the following filepaths have changed, we should update all hubs on all clusters
     common_filepaths = [
         # Filepaths related to the deployer infrastructure
-        "deployer/*",
-        "requirements.txt",
+        "mymodule/*",
         # Filepaths related to GitHub Actions infrastructure
-        ".github/workflows/deploy-hubs.yaml",
-        ".github/actions/deploy/*",
+        ".github/workflows/*",
         # Filepaths related to helm chart infrastructure
         "helm-charts/basehub/*",
         "helm-charts/daskhub/*",
