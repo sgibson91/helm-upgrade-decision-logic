@@ -5,23 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "**values.yaml"
-      - "**cluster.yaml"
-      - "helm-charts/basehub/**"
-      - "helm-charts/daskhub/**"
-      - "helm-charts/support/**"
-      - ".github/workflows/**"
+      - "**.yaml"
       - "mymodule/**"
   pull_request:
     branches:
       - main
     paths:
-      - "**values.yaml"
-      - "**cluster.yaml"
-      - "helm-charts/basehub/**"
-      - "helm-charts/daskhub/**"
-      - "helm-charts/support/**"
-      - ".github/workflows/**"
+      - "**.yaml"
       - "mymodule/**"
 
 jobs:
