@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.prod-hub-matrix-jobs }}
-      support-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.support-staging-matrix-jobs }}
+      support-and-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.support-and-staging-matrix-jobs }}
       test: ${{ steps.test-step.outputs.test }}
     steps:
       - uses: actions/checkout@v3
@@ -60,7 +60,7 @@ jobs:
       - run: |
           echo ${{ needs.generate-jobs.outputs.test }}
       - run: |
-          echo ${{ needs.generate-jobs.outputs.support-staging-matrix-jobs }}
+          echo ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
 
   hub-jobs:
     runs-on: ubuntu-latest
