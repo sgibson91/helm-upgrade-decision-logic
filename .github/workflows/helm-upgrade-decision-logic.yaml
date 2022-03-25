@@ -53,26 +53,24 @@ jobs:
   support-staging-jobs:
     runs-on: ubuntu-latest
     needs: generate-jobs
-    strategy:
-      fail-fast: false
-      matrix:
-        jobs: ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     jobs: ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
     steps:
       - run: |
-          echo "Provider: ${{ matrix.jobs.provider }}"
-          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
-          echo "Upgrade support?: ${{ matrix.jobs.upgrade_support }}"
-          echo "Upgrade staging?: ${{ matrix.jobs.upgrade_staging }}"
+          echo ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
+          echo ${{ toJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
 
-  hub-jobs:
-    runs-on: ubuntu-latest
-    needs: [generate-jobs, support-staging-jobs]
-    strategy:
-      fail-fast: false
-      matrix:
-        jobs: ${{ needs.generate-jobs.outputs.prod-hub-matrix-jobs }}
-    steps:
-      - run: |
-          echo "Provider: ${{ matrix.jobs.provider }}"
-          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
-          echo "Hub name: ${{ matrix.jobs.hub_name }}"
+  # hub-jobs:
+  #   runs-on: ubuntu-latest
+  #   needs: [generate-jobs, support-staging-jobs]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       jobs: ${{ needs.generate-jobs.outputs.prod-hub-matrix-jobs }}
+  #   steps:
+  #     - run: |
+  #         echo "Provider: ${{ matrix.jobs.provider }}"
+  #         echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+  #         echo "Hub name: ${{ matrix.jobs.hub_name }}"
