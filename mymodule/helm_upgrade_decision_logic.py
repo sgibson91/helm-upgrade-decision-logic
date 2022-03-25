@@ -1,6 +1,7 @@
 import argparse
 import fnmatch
 import os
+import subprocess
 from pathlib import Path
 
 from rich.console import Console
@@ -404,35 +405,6 @@ def assign_staging_matrix_jobs(
     return hub_matrix_jobs, staging_matrix_jobs
 
 
-def update_github_env(hub_matrix_jobs, support_matrix_jobs):
-    """Update the GITHUB_ENV environment with two new variables describing the matrix
-    jobs that need to be run in order to update the support charts and hubs that have
-    been modified.
-
-    Args:
-        hub_matrix_jobs (list[dict]): A list of dictionaries which describe the set of
-            matrix jobs required to update only the hubs on clusters whose config has
-            been modified.
-        support_matrix_jobs (list[dict]):  A list of dictionaries which describe the
-            set of matrix jobs required to update only the support chart on clusters
-            whose config has been modified.
-    """
-    # In GitHub Actions, the environment a workflow/job/step executes in can be
-    # influenced by the contents of the `GITHUB_ENV` file.
-    #
-    # For more information, see:
-    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
-    with open(os.getenv("GITHUB_ENV"), "a") as f:
-        f.write(
-            "\n".join(
-                [
-                    f"HUB_MATRIX_JOBS={hub_matrix_jobs}",
-                    f"SUPPORT_MATRIX_JOBS={support_matrix_jobs}",
-                ]
-            )
-        )
-
-
 def pretty_print_matrix_jobs(
     prod_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list
 ) -> None:
@@ -565,19 +537,31 @@ def main():
         prod_hub_matrix_jobs, support_and_staging_matrix_jobs
     )
 
-    # The existence of the GITHUB_ENV environment variable is an indication that
-    # we are running in an GitHub Actions workflow
+    # The existence of the CI environment variable is an indication that we are running
+    # in an GitHub Actions workflow
     # https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
     # We should always default to pretty printing the results of the decision logic
     # if we are not running in GitHub Actions, even when the --pretty-print flag has
-    # not been parsed on the command line. This will avoid errors trying to write to
-    # a GITHUB_ENV file that does not exist in the update_github_env function
-    env = os.environ.get("GITHUB_ENV", {})
-    if args.pretty_print or not env:
+    # not been parsed on the command line. This will avoid errors trying to set CI
+    # output variables in an environment that doesn't exist.
+    ci_env = os.environ.get("CI", False)
+    if args.pretty_print or not ci_env:
         pretty_print_matrix_jobs(prod_hub_matrix_jobs, support_and_staging_matrix_jobs)
     else:
-        # Add these matrix jobs to the GitHub environment for use in another job
-        update_github_env(prod_hub_matrix_jobs, support_and_staging_matrix_jobs)
+        # Add these matrix jobs as output variables for use in another job
+        # https://docs.github.com/en/github-ae@latest/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idoutputs
+        subprocess.check_call(
+            [
+                "echo",
+                f'"::set-output name=PROD_HUB_MATRIX_JOBS::{prod_hub_matrix_jobs}"',
+            ]
+        )
+        subprocess.check_call(
+            [
+                "echo",
+                f'"::set-output name=SUPPORT_AND_STAGING_MATRIX_JOBS::{support_and_staging_matrix_jobs}"',
+            ]
+        )
 
 
 if __name__ == "__main__":
