@@ -45,7 +45,7 @@ jobs:
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
 
-  support-jobs:
+  support-staging-jobs:
     runs-on: ubuntu-latest
     needs: generate-jobs
     steps:
@@ -54,7 +54,7 @@ jobs:
 
   hub-jobs:
     runs-on: ubuntu-latest
-    needs: generate-jobs
+    needs: [generate-jobs, support-staging-jobs]
     steps:
       - run: |
           echo ${{ env.HUB_MATRIX_JOBS}}
