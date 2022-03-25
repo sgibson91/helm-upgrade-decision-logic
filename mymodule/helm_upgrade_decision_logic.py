@@ -151,15 +151,13 @@ def generate_hub_matrix_jobs(
 
         else:
             # Read in this hub's helm chart values files from the cluster.yaml file
-            helm_chart_values_files = [
-                str(cluster_file.parent.joinpath(values_file))
+            values_files = [
+                cluster_file.parent.joinpath(values_file)
                 for values_file in hub.get("helm_chart_values_files", {})
             ]
             # Establish if any of this hub's helm chart values files have been
             # modified
-            intersection = list(
-                added_or_modified_files.intersection(helm_chart_values_files)
-            )
+            intersection = added_or_modified_files.intersection(values_files)
 
             if intersection:
                 # If at least one of the helm chart values files associated with
@@ -169,7 +167,7 @@ def generate_hub_matrix_jobs(
                 matrix_job["hub_name"] = hub["name"]
                 matrix_job["reason_for_redeploy"] = (
                     "Following helm chart values files were modified:\n- "
-                    + "\n- ".join(intersection)
+                    + "\n- ".join([path.name for path in intersection])
                 )
                 matrix_jobs.append(matrix_job)
 
@@ -228,13 +226,14 @@ def generate_support_matrix_jobs(
             # We know we're upgrading support on all clusters, so just add the cluster
             # name to the list of matrix jobs and move on
             matrix_job = cluster_info.copy()
-            matrix_job["reason_for_redeploy"] = "Support helm chart has been modified"
+            matrix_job["upgrade_support"] = True
+            matrix_job["reason_for_support_redeploy"] = "Support helm chart has been modified"
             matrix_jobs.append(matrix_job)
 
         else:
             # Have the related support values files for this cluster been modified?
             values_files = [
-                str(cluster_file.joinpath(values_file))
+                cluster_file.parent.joinpath(values_file)
                 for values_file in support_config.get("helm_chart_values_files", {})
             ]
             intersection = added_or_modified_files.intersection(values_files)
@@ -242,9 +241,9 @@ def generate_support_matrix_jobs(
             if intersection:
                 matrix_job = cluster_info.copy()
                 matrix_job["upgrade_support"] = True
-                matrix_job["reason_for_redeploy"] = (
+                matrix_job["reason_for_support_redeploy"] = (
                     "Following helm chart values files were modified:\n- "
-                    + "\n- ".join(intersection)
+                    + "\n- ".join([path.name for path in intersection])
                 )
                 matrix_jobs.append(matrix_job)
 
