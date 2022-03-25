@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jobs: ${{ toJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
+        jobs: ${{ fromJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
     steps:
       - run: |
           echo "Provider: ${{ matrix.jobs.provider }}"
