@@ -555,13 +555,13 @@ def main():
         subprocess.check_call(
             [
                 "echo",
-                f'"::set-output name=PROD_HUB_MATRIX_JOBS::{prod_hub_matrix_jobs}"',
+                f'"::set-output name=prod-hub-matrix-jobs::{yaml.dumps(prod_hub_matrix_jobs)}"',
             ]
         )
         subprocess.check_call(
             [
                 "echo",
-                f'"::set-output name=SUPPORT_AND_STAGING_MATRIX_JOBS::{support_and_staging_matrix_jobs}"',
+                f'"::set-output name=support-and-staging-matrix-jobs::{yaml.dumps(support_and_staging_matrix_jobs)}"',
             ]
         )
 
