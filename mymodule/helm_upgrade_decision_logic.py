@@ -325,7 +325,7 @@ def assign_staging_matrix_jobs(
                     "provider": hub_job["provider"],
                     "upgrade_staging": "true",
                     "reason_for_staging_redeploy": hub_job["reason_for_redeploy"],
-                    "upgrade_support": False,
+                    "upgrade_support": "false",
                     "reason_for_support_redeploy": "",
                 }
                 staging_matrix_jobs.append(new_job)
@@ -359,7 +359,7 @@ def assign_staging_matrix_jobs(
             else:
                 # There are no prod hubs on this cluster that require an upgrade, so we
                 # do not upgrade staging
-                staging_job["upgrade_staging"] = False
+                staging_job["upgrade_staging"] = "false"
                 staging_job["reason_for_staging_redeploy"] = ""
 
     # Ensure that for each cluster listed in hub_matrix_jobs, there is an associated job
@@ -393,7 +393,7 @@ def assign_staging_matrix_jobs(
             new_job = {
                 "cluster_name": missing_cluster,
                 "provider": provider,
-                "upgrade_support": False,
+                "upgrade_support": "false",
                 "reason_for_support_redeploy": "",
                 "upgrade_staging": "true",
                 "reason_for_staging_redeploy": (
