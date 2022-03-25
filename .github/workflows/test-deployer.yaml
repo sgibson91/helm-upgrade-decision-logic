@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "**.py"
+      - "mymodule/**"
       - "tests/**"
   pull_request:
     branches:
       - main
     paths:
-      - "**.py"
+      - "mymodule/**"
       - "tests/**"
 
 jobs:
