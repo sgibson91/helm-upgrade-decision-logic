@@ -177,98 +177,83 @@ def generate_hub_matrix_jobs(
 
 
 def generate_support_matrix_jobs(
-    cluster_filepaths, added_or_modified_files, upgrade_support_on_all_clusters=False
-):
+    cluster_file: Path,
+    cluster_config: dict,
+    cluster_info: dict,
+    added_or_modified_files: set,
+    upgrade_support_on_this_cluster: bool = False,
+    upgrade_support_on_all_clusters: bool = False,
+) -> list:
     """Generate a list of dictionaries describing which clusters need to undergo a helm
-    upgrade of their support chart based on whether their cluster.yaml file or
-    associated support chart values files have been modified. To be parsed to GitHub
-    Actions in order to generate parallel jobs in a matrix.
-
-    Note: "cluster folders" are those that contain a cluster.yaml file.
+    upgrade of their support chart based on whether their associated support chart
+    values files have been modified. To be parsed to GitHub Actions in order to generate
+    jobs in a matrix.
 
     Args:
-        cluster_filepaths (list[path obj]): List of absolute paths to cluster folders
-            that contain added or modified files from the input of a GitHub Pull
-            Request
-        added_or_modified_files (set): A set of all added or modified files from the
-            input of a GitHub Pull Request
+        cluster_file (path obj): The absolute path to the cluster.yaml file of a given
+            cluster
+        cluster_config (dict): The cluster-wide config for a given cluster in
+            dictionary format
+        cluster_info (dict): A template dictionary for defining matrix jobs prepopulated
+            with some info. "cluster_name": The name of the given cluster; "provider":
+            the cloud provider the given cluster runs on; "reason_for_redeploy":
+            what has changed in the repository to prompt the support chart for this
+            cluster to be redeployed.
+        added_or_modified_files (set[str]): A set of all added or modified files
+            provided in a GitHub Pull Requests
+        upgrade_support_on_this_cluster (bool, optional): If True, generates jobs to
+            update the support chart on the given cluster. This is triggered when the
+            cluster.yaml file itself is modified. Defaults to False.
         upgrade_support_on_all_clusters (bool, optional): If True, generates jobs to
             update the support chart on all clusters. This is triggered when common
             config has been modified in the support helm chart. Defaults to False.
 
     Returns:
         list[dict]: A list of dictionaries. Each dictionary contains: the name of a
-            cluster and the cloud provider that cluster runs on.
+            cluster, the cloud provider that cluster runs on, a Boolean indicating if
+            the support chart should be upgraded, and a reason why the support chart
+            needs upgrading.
     """
+    cluster_info["reason_for_support_redeploy"] = cluster_info.pop(
+        "reason_for_redeploy"
+    )
+
     # Empty list to store the matrix definitions in
     matrix_jobs = []
 
-    if upgrade_support_on_all_clusters:
-        print(
-            "Support helm chart has been modified. Generating jobs to upgrade support chart on ALL clusters."
-        )
+    # Double-check that support is defined for this cluster.
+    support_config = cluster_config.get("support", {})
+    if support_config:
+        if upgrade_support_on_all_clusters or upgrade_support_on_this_cluster:
+            # We know we're upgrading support on all clusters, so just add the cluster
+            # name to the list of matrix jobs and move on
+            matrix_job = cluster_info.copy()
+            matrix_job["reason_for_redeploy"] = "Support helm chart has been modified"
+            matrix_jobs.append(matrix_job)
 
-        # Overwrite cluster_filepaths to contain paths to all clusters
-        if test_env == "test":
-            # We are running a test via pytest. We only want to focus on the cluster
-            # folders nested under the `tests/` folder.
-            cluster_filepaths = [
-                filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
-                if "tests/" in str(filepath)
-            ]
         else:
-            # We are NOT running a test via pytest. We want to explicitly ignore the
-            # cluster folders nested under the `tests/` folder.
-            cluster_filepaths = [
-                filepath.parent
-                for filepath in Path(os.getcwd()).glob("**/cluster.yaml")
-                if "tests/" not in str(filepath)
+            # Have the related support values files for this cluster been modified?
+            values_files = [
+                str(cluster_file.joinpath(values_file))
+                for values_file in support_config.get("helm_chart_values_files", {})
             ]
+            intersection = added_or_modified_files.intersection(values_files)
 
-    for cluster_filepath in cluster_filepaths:
-        # Read in the cluster.yaml file
-        with open(cluster_filepath.joinpath("cluster.yaml")) as f:
-            cluster_config = yaml.load(f)
-
-        # Generate a dictionary-style job entry for this cluster
-        cluster_info = {
-            "cluster_name": cluster_config.get("name", {}),
-            "provider": cluster_config.get("provider", {}),
-        }
-
-        # Double-check that support is defined for this cluster.
-        support_config = cluster_config.get("support", {})
-        if support_config:
-            if upgrade_support_on_all_clusters:
-                # We know we're upgrading support on all clusters, so just add the cluster name to the list
-                # of matrix jobs and move on
+            if intersection:
                 matrix_job = cluster_info.copy()
-                matrix_job[
-                    "reason_for_redeploy"
-                ] = "Support helm chart has been modified"
+                matrix_job["upgrade_support"] = True
+                matrix_job["reason_for_redeploy"] = (
+                    "Following helm chart values files were modified:\n- "
+                    + "\n- ".join(intersection)
+                )
                 matrix_jobs.append(matrix_job)
-            else:
-                # Has the cluster.yaml file for this cluster folder been modified?
-                cluster_yaml_intersection = added_or_modified_files.intersection(
-                    [str(cluster_filepath.joinpath("cluster.yaml"))]
-                )
 
-                # Have the related support values files for this cluster been modified?
-                support_values_files = [
-                    str(cluster_filepath.joinpath(values_file))
-                    for values_file in support_config.get("helm_chart_values_files", {})
-                ]
-                support_values_intersection = added_or_modified_files.intersection(
-                    support_values_files
-                )
+    else:
+        print(f"No support defined for cluster: {cluster_info['cluster_name']}")
 
-                # If either of the intersections have a length greater than zero, append
-                # the job definition to the list of matrix jobs
-                if (len(cluster_yaml_intersection) > 0) or (
-                    len(support_values_intersection) > 0
-                ):
-                    matrix_job = cluster_info.copy()
+    return matrix_jobs
+
+
 
                     if len(support_values_intersection) > 0:
                         matrix_job["reason_for_redeploy"] = (
