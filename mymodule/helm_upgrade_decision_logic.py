@@ -434,6 +434,7 @@ def pretty_print_matrix_jobs(
             job["reason_for_support_redeploy"],
             job["upgrade_staging"],
             job["reason_for_staging_redeploy"],
+            end_section=True,
         )
 
     # Construct table for prod hub upgrades
@@ -450,6 +451,7 @@ def pretty_print_matrix_jobs(
             job["cluster_name"],
             job["hub_name"],
             job["reason_for_redeploy"],
+            end_section=True,
         )
 
     console = Console()
