@@ -550,7 +550,7 @@ def main():
         pretty_print_matrix_jobs(prod_hub_matrix_jobs, support_and_staging_matrix_jobs)
     else:
         # Add these matrix jobs as output variables for use in another job
-        # https://docs.github.com/en/github-ae@latest/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idoutputs
+        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
         print(f"::set-output name=prod-hub-matrix-jobs::{prod_hub_matrix_jobs}")
         print(f"::set-output name=support-and-staging-matrix-jobs::{support_and_staging_matrix_jobs}")
 
