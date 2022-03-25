@@ -1,7 +1,6 @@
 import argparse
 import fnmatch
 import os
-import subprocess
 from pathlib import Path
 
 from rich.console import Console
@@ -552,18 +551,8 @@ def main():
     else:
         # Add these matrix jobs as output variables for use in another job
         # https://docs.github.com/en/github-ae@latest/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idoutputs
-        subprocess.check_call(
-            [
-                "echo",
-                f"::set-output name=prod-hub-matrix-jobs::{prod_hub_matrix_jobs}",
-            ]
-        )
-        subprocess.check_call(
-            [
-                "echo",
-                f"::set-output name=support-and-staging-matrix-jobs::{support_and_staging_matrix_jobs}",
-            ]
-        )
+        print(f"::set-output name=prod-hub-matrix-jobs::{prod_hub_matrix_jobs}")
+        print(f"::set-output name=support-and-staging-matrix-jobs::{support_and_staging_matrix_jobs}")
 
 
 if __name__ == "__main__":
