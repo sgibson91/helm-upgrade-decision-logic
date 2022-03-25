@@ -53,14 +53,16 @@ jobs:
   support-staging-jobs:
     runs-on: ubuntu-latest
     needs: generate-jobs
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     jobs: ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
     steps:
       - run: |
-          echo ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
-          echo ${{ toJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Upgrade Support?: ${{ matrix.jobs.upgrade_support }}"
+          echo "Upgrade Staging?: ${{ matrix.jobs.upgrade_staging }}"
 
   # hub-jobs:
   #   runs-on: ubuntu-latest
