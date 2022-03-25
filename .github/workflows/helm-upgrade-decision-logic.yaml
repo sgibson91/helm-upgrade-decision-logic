@@ -1,17 +1,17 @@
-name: Decide which clusters/hubs to run helm upgrade for and create matrix jobs
+name: Deploy hubs
 
 on:
   push:
     branches:
       - main
     paths:
-      - "**.yaml"
+      - "**/*.yaml"
       - "mymodule/**"
   pull_request:
     branches:
       - main
     paths:
-      - "**.yaml"
+      - "**/*.yaml"
       - "mymodule/**"
 
 jobs:
