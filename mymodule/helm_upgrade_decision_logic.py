@@ -226,7 +226,7 @@ def generate_support_matrix_jobs(
             # We know we're upgrading support on all clusters, so just add the cluster
             # name to the list of matrix jobs and move on
             matrix_job = cluster_info.copy()
-            matrix_job["upgrade_support"] = True
+            matrix_job["upgrade_support"] = "true"
             matrix_job[
                 "reason_for_support_redeploy"
             ] = "Support helm chart has been modified"
@@ -242,7 +242,7 @@ def generate_support_matrix_jobs(
 
             if intersection:
                 matrix_job = cluster_info.copy()
-                matrix_job["upgrade_support"] = True
+                matrix_job["upgrade_support"] = "true"
                 matrix_job["reason_for_support_redeploy"] = (
                     "Following helm chart values files were modified:\n- "
                     + "\n- ".join([path.name for path in intersection])
@@ -307,7 +307,7 @@ def assign_staging_matrix_jobs(
             if job_idx is not None:
                 # Add information to the matching staging_matrix_jobs entry
                 # to upgrade the staging deployment
-                staging_matrix_jobs[job_idx]["upgrade_staging"] = True
+                staging_matrix_jobs[job_idx]["upgrade_staging"] = "true"
                 staging_matrix_jobs[job_idx]["reason_for_staging_redeploy"] = hub_job[
                     "reason_for_redeploy"
                 ]
@@ -323,7 +323,7 @@ def assign_staging_matrix_jobs(
                 new_job = {
                     "cluster_name": hub_job["cluster_name"],
                     "provider": hub_job["provider"],
-                    "upgrade_staging": True,
+                    "upgrade_staging": "true",
                     "reason_for_staging_redeploy": hub_job["reason_for_redeploy"],
                     "upgrade_support": False,
                     "reason_for_support_redeploy": "",
@@ -350,7 +350,7 @@ def assign_staging_matrix_jobs(
             if hubs_on_this_cluster:
                 # There are prod hubs on this cluster that require an upgrade, and so we
                 # also upgrade staging
-                staging_job["upgrade_staging"] = True
+                staging_job["upgrade_staging"] = "true"
                 staging_job[
                     "reason_for_staging_redeploy"
                 ] = "Following prod hubs require redeploy:\n- " + "\n- ".join(
@@ -395,7 +395,7 @@ def assign_staging_matrix_jobs(
                 "provider": provider,
                 "upgrade_support": False,
                 "reason_for_support_redeploy": "",
-                "upgrade_staging": True,
+                "upgrade_staging": "true",
                 "reason_for_staging_redeploy": (
                     "Following prod hubs require redeploy:\n- " + "\n- ".join(prod_hubs)
                 ),
@@ -423,9 +423,9 @@ def pretty_print_matrix_jobs(
         support_table.add_row(
             job["provider"],
             job["cluster_name"],
-            str(job["upgrade_support"]),
+            job["upgrade_support"],
             job["reason_for_support_redeploy"],
-            str(job["upgrade_staging"]),
+            job["upgrade_staging"],
             job["reason_for_staging_redeploy"],
         )
 

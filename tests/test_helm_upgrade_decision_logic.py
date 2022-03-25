@@ -235,7 +235,7 @@ def test_generate_support_matrix_jobs_one_cluster():
         {
             "provider": "gcp",
             "cluster_name": "cluster1",
-            "upgrade_support": True,
+            "upgrade_support": "true",
             "reason_for_support_redeploy": "Following helm chart values files were modified:\n- support.values.yaml",
         }
     ]
@@ -252,7 +252,7 @@ def test_generate_support_matrix_jobs_one_cluster():
     assert "cluster_name" in result_matrix_jobs[0].keys()
     assert "upgrade_support" in result_matrix_jobs[0].keys()
     assert "reason_for_support_redeploy" in result_matrix_jobs[0].keys()
-    assert result_matrix_jobs[0]["upgrade_support"]
+    assert result_matrix_jobs[0]["upgrade_support"] == "true"
 
 
 def test_generate_support_matrix_jobs_all_clusters():
@@ -276,7 +276,7 @@ def test_generate_support_matrix_jobs_all_clusters():
         {
             "provider": "gcp",
             "cluster_name": "cluster1",
-            "upgrade_support": True,
+            "upgrade_support": "true",
             "reason_for_support_redeploy": "Support helm chart has been modified",
         }
     ]
@@ -320,19 +320,19 @@ def test_generate_support_matrix_jobs_all_clusters():
     assert "cluster_name" in result_matrix_jobs_1[0].keys()
     assert "upgrade_support" in result_matrix_jobs_1[0].keys()
     assert "reason_for_support_redeploy" in result_matrix_jobs_1[0].keys()
-    assert result_matrix_jobs_1[0]["upgrade_support"]
+    assert result_matrix_jobs_1[0]["upgrade_support"] == "true"
 
     assert "provider" in result_matrix_jobs_2[0].keys()
     assert "cluster_name" in result_matrix_jobs_2[0].keys()
     assert "upgrade_support" in result_matrix_jobs_2[0].keys()
     assert "reason_for_support_redeploy" in result_matrix_jobs_2[0].keys()
-    assert result_matrix_jobs_2[0]["upgrade_support"]
+    assert result_matrix_jobs_2[0]["upgrade_support"] == "true"
 
     assert "provider" in result_matrix_jobs_3[0].keys()
     assert "cluster_name" in result_matrix_jobs_3[0].keys()
     assert "upgrade_support" in result_matrix_jobs_3[0].keys()
     assert "reason_for_support_redeploy" in result_matrix_jobs_3[0].keys()
-    assert result_matrix_jobs_3[0]["upgrade_support"]
+    assert result_matrix_jobs_3[0]["upgrade_support"] == "true"
 
 
 def test_discover_modified_common_files_hub_helm_charts():
