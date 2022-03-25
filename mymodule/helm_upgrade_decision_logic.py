@@ -473,7 +473,7 @@ def main():
     ) = discover_modified_common_files(args.filepaths)
 
     # Get a list of filepaths to target cluster folders
-    cluster_files = get_all_cluster_yaml_files(args.filepaths)
+    cluster_files = get_all_cluster_yaml_files()
 
     # Empty lists to store job definitions in
     prod_hub_matrix_jobs = []
