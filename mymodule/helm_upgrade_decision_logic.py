@@ -436,28 +436,36 @@ def update_github_env(hub_matrix_jobs, support_matrix_jobs):
         )
 
 
-def pretty_print_matrix_jobs(hub_matrix_jobs, support_matrix_jobs):
+def pretty_print_matrix_jobs(prod_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list) -> None:
     # Construct table for support chart upgrades
-    support_table = Table(title="Support chart upgrades")
+    support_table = Table(title="Support chart and Staging hub upgrades")
     support_table.add_column("Cloud Provider")
     support_table.add_column("Cluster Name")
-    support_table.add_column("Reason for Redeploy")
+    support_table.add_column("Upgrade Support?")
+    support_table.add_column("Reason for Support Redeploy")
+    support_table.add_column("Upgrade Staging?")
+    support_table.add_column("Reason for Staging Redeploy")
 
     # Add rows
-    for job in support_matrix_jobs:
+    for job in support_and_staging_matrix_jobs:
         support_table.add_row(
-            job["provider"], job["cluster_name"], job["reason_for_redeploy"]
+            job["provider"],
+            job["cluster_name"],
+            str(job["upgrade_support"]),
+            job["reason_for_support_redeploy"],
+            str(job["upgrade_staging"]),
+            job["reason_for_staging_redeploy"],
         )
 
-    # Construct table for hub helm chart upgrades
-    hub_table = Table(title="Hub helm chart upgrades")
+    # Construct table for prod hub upgrades
+    hub_table = Table(title="Prod hub upgrades")
     hub_table.add_column("Cloud Provider")
     hub_table.add_column("Cluster Name")
     hub_table.add_column("Hub Name")
     hub_table.add_column("Reason for Redeploy")
 
     # Add rows
-    for job in hub_matrix_jobs:
+    for job in prod_hub_matrix_jobs:
         hub_table.add_row(
             job["provider"],
             job["cluster_name"],
