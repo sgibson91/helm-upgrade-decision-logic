@@ -307,9 +307,9 @@ def assign_staging_matrix_jobs(
                 # Add information to the matching staging_matrix_jobs entry
                 # to upgrade the staging deployment
                 staging_matrix_jobs[job_idx]["upgrade_staging"] = True
-                staging_matrix_jobs[job_idx][
-                    "reason_for_staging_redeploy"
-                ] = hub_job["reason_for_redeploy"]
+                staging_matrix_jobs[job_idx]["reason_for_staging_redeploy"] = hub_job[
+                    "reason_for_redeploy"
+                ]
 
                 # Mark the current hub job for deletion from hub_matrix_jobs
                 job_ids_to_remove.append(hub_job_id)
@@ -365,9 +365,7 @@ def assign_staging_matrix_jobs(
     # in staging_matrix_jobs. This is our last-hope catch-all to ensure there are no
     # prod hub jobs trying to run without an associated support/staging job
     prod_hub_clusters = {job["cluster_name"] for job in hub_matrix_jobs}
-    support_staging_clusters = {
-        job["cluster_name"] for job in staging_matrix_jobs
-    }
+    support_staging_clusters = {job["cluster_name"] for job in staging_matrix_jobs}
     missing_clusters = prod_hub_clusters.difference(support_staging_clusters)
 
     if missing_clusters:
@@ -436,7 +434,9 @@ def update_github_env(hub_matrix_jobs, support_matrix_jobs):
         )
 
 
-def pretty_print_matrix_jobs(prod_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list) -> None:
+def pretty_print_matrix_jobs(
+    prod_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list
+) -> None:
     # Construct table for support chart upgrades
     support_table = Table(title="Support chart and Staging hub upgrades")
     support_table.add_column("Cloud Provider")
