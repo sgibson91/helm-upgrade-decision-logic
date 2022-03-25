@@ -228,7 +228,9 @@ def generate_support_matrix_jobs(
             # name to the list of matrix jobs and move on
             matrix_job = cluster_info.copy()
             matrix_job["upgrade_support"] = True
-            matrix_job["reason_for_support_redeploy"] = "Support helm chart has been modified"
+            matrix_job[
+                "reason_for_support_redeploy"
+            ] = "Support helm chart has been modified"
             matrix_jobs.append(matrix_job)
 
         else:

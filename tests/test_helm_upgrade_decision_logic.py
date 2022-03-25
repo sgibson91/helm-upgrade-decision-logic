@@ -29,7 +29,9 @@ def test_get_all_cluster_yaml_files():
 
 
 def test_generate_hub_matrix_jobs_one_hub():
-    cluster_file = Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml")
+    cluster_file = Path(os.getcwd()).joinpath(
+        "tests/test-clusters/cluster1/cluster.yaml"
+    )
     with open(cluster_file) as f:
         cluster_config = yaml.load(f)
 
@@ -52,7 +54,9 @@ def test_generate_hub_matrix_jobs_one_hub():
         }
     ]
 
-    result_matrix_jobs = generate_hub_matrix_jobs(cluster_file, cluster_config, cluster_info, modified_file)
+    result_matrix_jobs = generate_hub_matrix_jobs(
+        cluster_file, cluster_config, cluster_info, modified_file
+    )
 
     case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
@@ -65,7 +69,9 @@ def test_generate_hub_matrix_jobs_one_hub():
 
 
 def test_generate_hub_matrix_jobs_many_hubs():
-    cluster_file = Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml")
+    cluster_file = Path(os.getcwd()).joinpath(
+        "tests/test-clusters/cluster1/cluster.yaml"
+    )
     with open(cluster_file) as f:
         cluster_config = yaml.load(f)
 
@@ -113,7 +119,9 @@ def test_generate_hub_matrix_jobs_many_hubs():
 
 
 def test_generate_hub_matrix_jobs_all_hubs():
-    cluster_file = Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml")
+    cluster_file = Path(os.getcwd()).joinpath(
+        "tests/test-clusters/cluster1/cluster.yaml"
+    )
     with open(cluster_file) as f:
         cluster_config = yaml.load(f)
 
@@ -207,7 +215,9 @@ def test_generate_hub_matrix_jobs_all_hubs():
 
 
 def test_generate_support_matrix_jobs_one_cluster():
-    cluster_file = Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml")
+    cluster_file = Path(os.getcwd()).joinpath(
+        "tests/test-clusters/cluster1/cluster.yaml"
+    )
     with open(cluster_file) as f:
         cluster_config = yaml.load(f)
 
@@ -230,7 +240,9 @@ def test_generate_support_matrix_jobs_one_cluster():
         }
     ]
 
-    result_matrix_jobs = generate_support_matrix_jobs(cluster_file, cluster_config, cluster_info, modified_file)
+    result_matrix_jobs = generate_support_matrix_jobs(
+        cluster_file, cluster_config, cluster_info, modified_file
+    )
 
     case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs, list)
@@ -244,7 +256,9 @@ def test_generate_support_matrix_jobs_one_cluster():
 
 
 def test_generate_support_matrix_jobs_all_clusters():
-    cluster_file = Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml")
+    cluster_file = Path(os.getcwd()).joinpath(
+        "tests/test-clusters/cluster1/cluster.yaml"
+    )
     with open(cluster_file) as f:
         cluster_config = yaml.load(f)
 
@@ -267,9 +281,28 @@ def test_generate_support_matrix_jobs_all_clusters():
         }
     ]
 
-    result_matrix_jobs_1 = generate_support_matrix_jobs(cluster_file, cluster_config, cluster_info.copy(), modified_file, upgrade_support_on_this_cluster=True)
-    result_matrix_jobs_2 = generate_support_matrix_jobs(cluster_file, cluster_config, cluster_info.copy(), modified_file, upgrade_support_on_all_clusters=True)
-    result_matrix_jobs_3 = generate_support_matrix_jobs(cluster_file, cluster_config, cluster_info.copy(), modified_file, upgrade_support_on_this_cluster=True, upgrade_support_on_all_clusters=True)
+    result_matrix_jobs_1 = generate_support_matrix_jobs(
+        cluster_file,
+        cluster_config,
+        cluster_info.copy(),
+        modified_file,
+        upgrade_support_on_this_cluster=True,
+    )
+    result_matrix_jobs_2 = generate_support_matrix_jobs(
+        cluster_file,
+        cluster_config,
+        cluster_info.copy(),
+        modified_file,
+        upgrade_support_on_all_clusters=True,
+    )
+    result_matrix_jobs_3 = generate_support_matrix_jobs(
+        cluster_file,
+        cluster_config,
+        cluster_info.copy(),
+        modified_file,
+        upgrade_support_on_this_cluster=True,
+        upgrade_support_on_all_clusters=True,
+    )
 
     case.assertCountEqual(result_matrix_jobs_1, expected_matrix_jobs)
     assert isinstance(result_matrix_jobs_1, list)
@@ -324,7 +357,9 @@ def test_discover_modified_common_files_hub_helm_charts():
 def test_discover_modified_common_files_support_helm_chart():
     modified_files = [os.path.join("helm-charts", "support", "Chart.yaml")]
 
-    upgrade_all_clusters, upgrade_all_hubs = discover_modified_common_files(modified_files)
+    upgrade_all_clusters, upgrade_all_hubs = discover_modified_common_files(
+        modified_files
+    )
 
     assert upgrade_all_clusters
     assert not upgrade_all_hubs
