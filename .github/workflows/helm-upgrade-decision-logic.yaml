@@ -20,7 +20,7 @@ jobs:
     outputs:
       prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.prod-hub-matrix-jobs }}
       support-and-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.support-and-staging-matrix-jobs }}
-      test: ${{ steps.test-step.outputs.test }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -50,23 +50,29 @@ jobs:
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
 
-      - id: test-step
-        run: echo "::set-output name=test::hello"
-
   support-staging-jobs:
     runs-on: ubuntu-latest
     needs: generate-jobs
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ toJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
     steps:
       - run: |
-          echo ${{ needs.generate-jobs.outputs.test }}
-      - run: |
-          echo ${{ needs.generate-jobs.outputs.support-and-staging-matrix-jobs }}
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Upgrade support?: ${{ matrix.jobs.upgrade_support }}"
+          echo "Upgrade staging?: ${{ matrix.jobs.upgrade_staging }}"
 
   hub-jobs:
     runs-on: ubuntu-latest
     needs: [generate-jobs, support-staging-jobs]
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ toJson(needs.generate-jobs.outputs.prod-hub-matrix-jobs) }}
     steps:
       - run: |
-          echo ${{ needs.generate-jobs.outputs.test }}
-      - run: |
-          echo ${{ needs.generate-jobs.outputs.prod-hub-matrix-jobs }}
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Hub name: ${{ matrix.jobs.hub_name }}"
