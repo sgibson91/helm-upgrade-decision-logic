@@ -20,6 +20,7 @@ jobs:
     outputs:
       prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.PROD_HUB_MATRIX_JOBS }}
       support-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.SUPPORT_AND_STAGING_MATRIX_JOBS }}
+      test: ${{ steps.test-step.outputs.test }}
     steps:
       - uses: actions/checkout@v3
 
@@ -49,10 +50,15 @@ jobs:
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
 
+      - id: test-step
+        run: echo "::set-output name=test::hello"
+
   support-staging-jobs:
     runs-on: ubuntu-latest
     needs: generate-jobs
     steps:
+      - run: |
+          echo ${{ needs.generate-jobs.outputs.test }}
       - run: |
           echo ${{ needs.generate-jobs.outputs.support-staging-matrix-jobs }}
 
@@ -60,5 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [generate-jobs, support-staging-jobs]
     steps:
+      - run: |
+          echo ${{ needs.generate-jobs.outputs.test }}
       - run: |
           echo ${{ needs.generate-jobs.outputs.prod-hub-matrix-jobs }}
