@@ -18,8 +18,8 @@ jobs:
   generate-jobs:
     runs-on: ubuntu-latest
     outputs:
-      prod-hub-matrix-jobs: ${{ steps.generated-jobs.PROD_HUB_MATRIX_JOBS }}
-      support-staging-matrix-jobs: ${{ steps.generated-jobs.SUPPORT_AND_STAGING_MATRIX_JOBS }}
+      prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.PROD_HUB_MATRIX_JOBS }}
+      support-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.SUPPORT_AND_STAGING_MATRIX_JOBS }}
     steps:
       - uses: actions/checkout@v3
 
