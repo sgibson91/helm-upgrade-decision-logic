@@ -147,6 +147,10 @@ def generate_hub_matrix_jobs(
             # of matrix jobs and move on
             matrix_job = cluster_info.copy()
             matrix_job["hub_name"] = hub["name"]
+
+            if upgrade_all_hubs_on_all_clusters:
+                cluster_info["reason_for_redeploy"] = "Core infrastructure has been modified"
+
             matrix_jobs.append(matrix_job)
 
         else:
@@ -166,8 +170,8 @@ def generate_hub_matrix_jobs(
                 matrix_job = cluster_info.copy()
                 matrix_job["hub_name"] = hub["name"]
                 matrix_job["reason_for_redeploy"] = (
-                    "Following helm chart values files were modified:\n- "
-                    + "\n- ".join([path.name for path in intersection])
+                    "Following helm chart values files were modified: "
+                    + ", ".join([path.name for path in intersection])
                 )
                 matrix_jobs.append(matrix_job)
 
@@ -227,9 +231,12 @@ def generate_support_matrix_jobs(
             # name to the list of matrix jobs and move on
             matrix_job = cluster_info.copy()
             matrix_job["upgrade_support"] = "true"
-            matrix_job[
-                "reason_for_support_redeploy"
-            ] = "Support helm chart has been modified"
+
+            if upgrade_support_on_all_clusters:
+                matrix_job[
+                    "reason_for_support_redeploy"
+                ] = "Support helm chart has been modified"
+
             matrix_jobs.append(matrix_job)
 
         else:
@@ -244,8 +251,8 @@ def generate_support_matrix_jobs(
                 matrix_job = cluster_info.copy()
                 matrix_job["upgrade_support"] = "true"
                 matrix_job["reason_for_support_redeploy"] = (
-                    "Following helm chart values files were modified:\n- "
-                    + "\n- ".join([path.name for path in intersection])
+                    "Following helm chart values files were modified: "
+                    + ", ".join([path.name for path in intersection])
                 )
                 matrix_jobs.append(matrix_job)
 
@@ -265,10 +272,10 @@ def assign_staging_matrix_jobs(
     {
         "cluster_name": str                 # Name of the cluster
         "provider": str                     # Name of the cloud provider the cluster runs on
-        "upgrade_support": bool             # Whether to upgrade the support chart for this cluster
+        "upgrade_support": str(bool)        # Whether to upgrade the support chart for this cluster
         "reason_for_support_redeploy": str  # Why the support chart needs to be upgraded
-        "upgrade_staging": bool             # Whether the upgrade the staging deployment on this cluster
-        "reason_for_staging)redeploy": str  # Why the staging hub needs to be upgraded
+        "upgrade_staging": str(bool)        # Whether the upgrade the staging deployment on this cluster
+        "reason_for_staging_redeploy": str  # Why the staging hub needs to be upgraded
     }
 
     Args:
@@ -353,7 +360,7 @@ def assign_staging_matrix_jobs(
                 staging_job["upgrade_staging"] = "true"
                 staging_job[
                     "reason_for_staging_redeploy"
-                ] = "Following prod hubs require redeploy:\n- " + "\n- ".join(
+                ] = "Following prod hubs require redeploy: " + ", ".join(
                     hubs_on_this_cluster
                 )
             else:
@@ -397,7 +404,7 @@ def assign_staging_matrix_jobs(
                 "reason_for_support_redeploy": "",
                 "upgrade_staging": "true",
                 "reason_for_staging_redeploy": (
-                    "Following prod hubs require redeploy:\n- " + "\n- ".join(prod_hubs)
+                    "Following prod hubs require redeploy: " + ", ".join(prod_hubs)
                 ),
             }
 

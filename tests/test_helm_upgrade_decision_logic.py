@@ -50,7 +50,7 @@ def test_generate_hub_matrix_jobs_one_hub():
             "provider": "gcp",
             "cluster_name": "cluster1",
             "hub_name": "hub1",
-            "reason_for_redeploy": "Following helm chart values files were modified:\n- hub1.values.yaml",
+            "reason_for_redeploy": "Following helm chart values files were modified: hub1.values.yaml",
         }
     ]
 
@@ -91,13 +91,13 @@ def test_generate_hub_matrix_jobs_many_hubs():
             "provider": "gcp",
             "cluster_name": "cluster1",
             "hub_name": "hub1",
-            "reason_for_redeploy": "Following helm chart values files were modified:\n- hub1.values.yaml",
+            "reason_for_redeploy": "Following helm chart values files were modified: hub1.values.yaml",
         },
         {
             "provider": "gcp",
             "cluster_name": "cluster1",
             "hub_name": "hub2",
-            "reason_for_redeploy": "Following helm chart values files were modified:\n- hub2.values.yaml",
+            "reason_for_redeploy": "Following helm chart values files were modified: hub2.values.yaml",
         },
     ]
 
@@ -236,7 +236,7 @@ def test_generate_support_matrix_jobs_one_cluster():
             "provider": "gcp",
             "cluster_name": "cluster1",
             "upgrade_support": "true",
-            "reason_for_support_redeploy": "Following helm chart values files were modified:\n- support.values.yaml",
+            "reason_for_support_redeploy": "Following helm chart values files were modified: support.values.yaml",
         }
     ]
 
