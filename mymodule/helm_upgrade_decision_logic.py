@@ -21,7 +21,7 @@ def _converted_string_to_list(full_str: str) -> list:
     return full_str.split(" ")
 
 
-def discover_modified_common_files(modified_paths: list):
+def discover_modified_common_files(modified_paths: list) -> (bool, bool):
     """There are certain common files which, if modified, we should upgrade all hubs
     and/or all clusters appropriately. These common files include the helm charts we
     deploy, as well as the GitHub Actions and deployer package we use to deploy them.
