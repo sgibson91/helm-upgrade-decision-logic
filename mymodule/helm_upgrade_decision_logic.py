@@ -501,20 +501,69 @@ def main():
     ) = discover_modified_common_files(args.filepaths)
 
     # Get a list of filepaths to target cluster folders
-    cluster_filepaths = get_unique_cluster_filepaths(args.filepaths)
+    cluster_files = get_all_cluster_yaml_files(args.filepaths)
 
-    # Generate a job matrix of all hubs that need upgrading
-    hub_matrix_jobs = generate_hub_matrix_jobs(
-        cluster_filepaths,
-        set(args.filepaths),
-        upgrade_all_hubs_on_all_clusters=upgrade_all_hubs_on_all_clusters,
-    )
+    # Empty lists to store job definitions in
+    prod_hub_matrix_jobs = []
+    support_and_staging_matrix_jobs = []
 
-    # Generate a job matrix of all clusters that need their support chart upgrading
-    support_matrix_jobs = generate_support_matrix_jobs(
-        cluster_filepaths,
-        set(args.filepaths),
-        upgrade_support_on_all_clusters=upgrade_support_on_all_clusters,
+    for cluster_file in cluster_files:
+        # Read in the cluster.yaml file
+        with open(cluster_file) as f:
+            cluster_config = yaml.load(f)
+
+        # Get cluster's name and its cloud provider
+        cluster_name = cluster_config.get("name", {})
+        provider = cluster_config.get("provider", {})
+
+        # Generate template dictionary for all jobs associated with this cluster
+        cluster_info = {
+            "cluster_name": cluster_name,
+            "provider": provider,
+            "reason_for_redeploy": "",
+        }
+
+        # Check if this cluster file has been modified. If so, set boolean flags to True
+        intersection = set(args.filepaths).intersection([str(cluster_file)])
+        if intersection:
+            print(
+                f"This cluster.yaml file has been modified. Generating jobs to upgrade all hubs and the support chart on THIS cluster: {cluster_name}"
+            )
+            upgrade_all_hubs_on_this_cluster = True
+            upgrade_support_on_this_cluster = True
+            cluster_info["reason_for_redeploy"] = "cluster.yaml file was modified"
+        else:
+            upgrade_all_hubs_on_this_cluster = False
+            upgrade_support_on_this_cluster = False
+
+        # Generate a job matrix of all hubs that need upgrading on this cluster
+        prod_hub_matrix_jobs.extend(
+            generate_hub_matrix_jobs(
+                cluster_file,
+                cluster_config,
+                cluster_info,
+                set(args.filepaths),
+                upgrade_all_hubs_on_this_cluster=upgrade_all_hubs_on_this_cluster,
+                upgrade_all_hubs_on_all_clusters=upgrade_all_hubs_on_all_clusters,
+            )
+        )
+
+        # Generate a job matrix for support chart upgrades
+        support_and_staging_matrix_jobs.extend(
+            generate_support_matrix_jobs(
+                cluster_file,
+                cluster_config,
+                cluster_info,
+                set(args.filepaths),
+                upgrade_support_on_this_cluster=upgrade_support_on_this_cluster,
+                upgrade_support_on_all_clusters=upgrade_support_on_all_clusters,
+            )
+        )
+
+    # this needs to be a better comment v
+    # Ensure that the matrix job definitions conform to schema
+    prod_hub_matrix_jobs, support_and_staging_matrix_jobs = assign_staging_matrix_jobs(
+        prod_hub_matrix_jobs, support_and_staging_matrix_jobs
     )
 
     # The existence of the GITHUB_ENV environment variable is an indication that
@@ -526,10 +575,10 @@ def main():
     # a GITHUB_ENV file that does not exist in the update_github_env function
     env = os.environ.get("GITHUB_ENV", {})
     if args.pretty_print or not env:
-        pretty_print_matrix_jobs(hub_matrix_jobs, support_matrix_jobs)
+        pretty_print_matrix_jobs(prod_hub_matrix_jobs, support_and_staging_matrix_jobs)
     else:
         # Add these matrix jobs to the GitHub environment for use in another job
-        update_github_env(hub_matrix_jobs, support_matrix_jobs)
+        update_github_env(prod_hub_matrix_jobs, support_and_staging_matrix_jobs)
 
 
 if __name__ == "__main__":
