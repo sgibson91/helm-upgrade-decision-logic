@@ -294,33 +294,6 @@ def assign_staging_matrix_jobs(
         staging_matrix_jobs (list[dict]): Transformed list of dictionaries describing
             matrix jobs to upgrade staging hubs and the support chart if necessary
     """
-    # For each job listed in staging_matrix_jobs, ensure it has the
-    # upgrade_staging key present, even if we just set it to False
-    for staging_job in staging_matrix_jobs:
-        if "upgrade_staging" not in staging_job.keys():
-            # Get a list of prod hubs running on the same cluster this staging job will
-            # run on
-            hubs_on_this_cluster = [
-                hub["hub_name"]
-                for hub in hub_matrix_jobs
-                if hub["cluster_name"] == staging_job["cluster_name"]
-            ]
-
-            if hubs_on_this_cluster:
-                # There are prod hubs on this cluster that require an upgrade, and so we
-                # also upgrade staging
-                staging_job["upgrade_staging"] = "true"
-                staging_job[
-                    "reason_for_staging_redeploy"
-                ] = "Following prod hubs require redeploy: " + ", ".join(
-                    hubs_on_this_cluster
-                )
-            else:
-                # There are no prod hubs on this cluster that require an upgrade, so we
-                # do not upgrade staging
-                staging_job["upgrade_staging"] = "false"
-                staging_job["reason_for_staging_redeploy"] = ""
-
     # Ensure that for each cluster listed in hub_matrix_jobs, there is an associated job
     # in staging_matrix_jobs. This is our last-hope catch-all to ensure there are no
     # prod hub jobs trying to run without an associated support/staging job
@@ -454,6 +427,54 @@ def move_staging_jobs_to_staging_matrix(
             support_and_staging_matrix_jobs.append(new_job)
 
     return prod_hub_matrix_jobs, support_and_staging_matrix_jobs
+
+
+def ensure_support_staging_jobs_have_correct_keys(
+    support_and_staging_matrix_jobs: list, prod_hub_matrix_jobs: list
+) -> list:
+    """This function ensures that all entries in support_and_staging_matrix_jobs have
+    the expected upgrade_staging and eason_for_staging_redeploy keys, even if they are
+    set to false/empty.
+
+    Args:
+        support_and_staging_matrix_jobs (list[dict]): A list of dictionaries
+            representing jobs to upgrade the support chart and staging hub on clusters
+            that require it.
+        prod_hub_matrix_jobs (list[dict]): A list of dictionaries representing jobs to
+            upgrade production hubs that require it.
+
+    Returns:
+        support_and_staging_matrix_jobs (list[dict]): Updated to ensure each entry has
+            the upgrade_staging and reason_for_staging_redeploy keys, even if they are
+            false/empty.
+    """
+    # For each job listed in support_and_staging_matrix_jobs, ensure it has the
+    # upgrade_staging key present, even if we just set it to False
+    for job in support_and_staging_matrix_jobs:
+        if "upgrade_staging" not in job.keys():
+            # Get a list of prod hubs running on the same cluster this staging job will
+            # run on
+            hubs_on_this_cluster = [
+                hub["hub_name"]
+                for hub in prod_hub_matrix_jobs
+                if hub["cluster_name"] == job["cluster_name"]
+            ]
+            if hubs_on_this_cluster:
+                # There are prod hubs on this cluster that require an upgrade, and so we
+                # also upgrade staging
+                job["upgrade_staging"] = "true"
+                job[
+                    "reason_for_staging_redeploy"
+                ] = "Following prod hubs require redeploy: " + ", ".join(
+                    hubs_on_this_cluster
+                )
+            else:
+                # There are no prod hubs on this cluster that require an upgrade, so we
+                # do not upgrade staging
+                job["upgrade_staging"] = "false"
+                job["reason_for_staging_redeploy"] = ""
+
+    return support_and_staging_matrix_jobs
 
 
 def pretty_print_matrix_jobs(

@@ -6,6 +6,7 @@ from ruamel.yaml import YAML
 
 from mymodule.helm_upgrade_decision_logic import (
     discover_modified_common_files,
+    ensure_support_staging_jobs_have_correct_keys,
     generate_hub_matrix_jobs,
     generate_support_matrix_jobs,
     get_all_cluster_yaml_files,
@@ -413,3 +414,68 @@ def test_move_staging_jobs_to_staging_matrix_job_does_not_exist():
 
     assert "upgrade_staging" in result_support_staging_matrix_jobs[0].keys()
     assert "reason_for_staging_redeploy" in result_support_staging_matrix_jobs[0].keys()
+
+
+def test_ensure_support_staging_jobs_have_correct_keys_hubs_exist():
+    input_support_staging_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "false",
+            "reason_for_support_upgrade": "",
+        }
+    ]
+
+    input_hub_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "hub1",
+            "reason_for_redeploy": "",
+        }
+    ]
+
+    expected_support_staging_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "false",
+            "reason_for_support_upgrade": "",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "Following prod hubs require redeploy: hub1",
+        }
+    ]
+
+    result_support_staging_jobs = ensure_support_staging_jobs_have_correct_keys(
+        input_support_staging_jobs, input_hub_jobs
+    )
+
+    case.assertCountEqual(result_support_staging_jobs, expected_support_staging_jobs)
+
+
+def test_ensure_support_staging_jobs_have_correct_keys_hubs_dont_exist():
+    input_support_staging_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "false",
+            "reason_for_support_upgrade": "",
+        }
+    ]
+
+    expected_support_staging_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "false",
+            "reason_for_support_upgrade": "",
+            "upgrade_staging": "false",
+            "reason_for_staging_redeploy": "",
+        }
+    ]
+
+    result_support_staging_jobs = ensure_support_staging_jobs_have_correct_keys(
+        input_support_staging_jobs, []
+    )
+
+    case.assertCountEqual(result_support_staging_jobs, expected_support_staging_jobs)
