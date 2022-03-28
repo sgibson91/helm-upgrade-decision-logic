@@ -294,58 +294,6 @@ def assign_staging_matrix_jobs(
         staging_matrix_jobs (list[dict]): Transformed list of dictionaries describing
             matrix jobs to upgrade staging hubs and the support chart if necessary
     """
-    # We want to move the jobs updating a staging hub from the prod hub matrix job list
-    # into the support and staging matrix job list. The job_ids_to_remove list will
-    # track the indexes of the jobs that need to be deleted from hub_matrix_jobs.
-    job_ids_to_remove = []
-
-    # Loop over each matrix job in hub_matrix_jobs. If the name of the hub contains
-    # "staging" (including "dask-staging"), update a job in staging_matrix_jobs
-    # to hold a Boolean value to upgrade the staging deployment.
-    for hub_job_id, hub_job in enumerate(hub_matrix_jobs):
-        if "staging" in hub_job["hub_name"]:
-            # Find the index of a job in staging_matrix_jobs that has the
-            # same cluster name as the current hub job.
-            job_idx = next(
-                (
-                    idx
-                    for (idx, staging_job) in enumerate(staging_matrix_jobs)
-                    if staging_job["cluster_name"] == hub_job["cluster_name"]
-                ),
-                None,
-            )
-
-            if job_idx is not None:
-                # Add information to the matching staging_matrix_jobs entry
-                # to upgrade the staging deployment
-                staging_matrix_jobs[job_idx]["upgrade_staging"] = "true"
-                staging_matrix_jobs[job_idx]["reason_for_staging_redeploy"] = hub_job[
-                    "reason_for_redeploy"
-                ]
-
-                # Mark the current hub job for deletion from hub_matrix_jobs
-                job_ids_to_remove.append(hub_job_id)
-
-            else:
-                # A job with a matching cluster name doesn't exist, this is because its
-                # support chart doesn't need upgrading. We create a new job in that will
-                # upgrade the staging deployment for this cluster, but not the support
-                # chart.
-                new_job = {
-                    "cluster_name": hub_job["cluster_name"],
-                    "provider": hub_job["provider"],
-                    "upgrade_staging": "true",
-                    "reason_for_staging_redeploy": hub_job["reason_for_redeploy"],
-                    "upgrade_support": "false",
-                    "reason_for_support_redeploy": "",
-                }
-                staging_matrix_jobs.append(new_job)
-
-    # Remove all the jobs for staging hubs from hub_matrix_jobs, they are now tracked
-    # in staging_matrix_jobs
-    for job_id in job_ids_to_remove:
-        del hub_matrix_jobs[job_id]
-
     # For each job listed in staging_matrix_jobs, ensure it has the
     # upgrade_staging key present, even if we just set it to False
     for staging_job in staging_matrix_jobs:
@@ -415,6 +363,97 @@ def assign_staging_matrix_jobs(
             staging_matrix_jobs.append(new_job)
 
     return hub_matrix_jobs, staging_matrix_jobs
+
+
+def move_staging_jobs_to_staging_matrix(
+    all_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list
+) -> (list, list):
+    """This function's first argument is a list of dictionary jobs calculated for
+    hubs by the generate_hub_matrix_job function and filters them based on whether
+    "staging" appears in the "hub_name" field or not. The list of production hub jobs,
+    those without "staging" in their name, are returned unchanged as the first argument.
+
+    The second argument is a list of dictionary jobs to upgrade the support chart on
+    clusters that require it. The filtered list of staging hubs, those with "staging"
+    in their name, is used to update these jobs with information to upgrade the staging
+    hub for that cluster. If a job for a cluster matching a staging hub does not already
+    exist in support_and_staging_matrix_jobs, one is created that *doesn't* also upgrade
+    the support chart since this is the reason the job doesn't exist in the first place.
+
+    Updated support_and_srttaging_matrix_jobs with the following properties are returned
+    as the second argument. Note: string representations of booleans are required to be
+    recognised by the GitHub Actions runner.
+
+    {
+        "cluster_name": str,
+        "provider": str,
+        "upgrade_support": str(bool),
+        "reason_for_support_redeploy_: str,
+        "upgrade_staging": str(bool),
+        "reason_for_staging_redeploy_: str,
+    }
+
+    Args:
+        all_hub_matrix_jobs (list[dict]): A list of dictionaries representing matrix
+            jobs to upgrade deployed hubs as identified by the generate_hub_matrix_jobs
+            function.
+        support_and_staging_matrix_jobs (list[dict]): A list of dictionaries
+            representing matrix jobs to upgrade the support chart for clusters as
+            identified by the generate_support_matrix_jobs function.
+
+    Returns:
+        prod_hub_matrix_jobs (list[dict]): A list of dictionaries representing matrix
+            jobs to upgrade all production hubs, i.e., those without "staging" in their
+            name.
+        support_and_staging_matrix_jobs (list[dict]): A list of dictionaries representing
+            matrix jobs to upgrade the support chart and staging hub on clusters that
+            require it.
+    """
+    # Separate the jobs for hubs with "staging" in their name (including "dask-staging")
+    # from those without staging in their name
+    staging_hub_jobs = [
+        job for job in all_hub_matrix_jobs if "staging" in job["hub_name"]
+    ]
+    prod_hub_matrix_jobs = [
+        job for job in all_hub_matrix_jobs if "staging" not in job["hub_name"]
+    ]
+
+    # Loop over each job for a staging hub
+    for staging_job in staging_hub_jobs:
+        # Find a job in support_and_staging_matrix_jobs that is for the same cluster as
+        # the current staging hub job
+        job_idx = next(
+            (
+                idx
+                for (idx, job) in enumerate(support_and_staging_matrix_jobs)
+                if staging_job["cluster_name"] == job["cluster_name"]
+            ),
+            None,
+        )
+
+        if job_idx is not None:
+            # Update the matching job in support_and_staging_matrix_jobs to hold
+            # information related to upgrading the staging hub
+            support_and_staging_matrix_jobs[job_idx]["upgrade_staging"] = "true"
+            support_and_staging_matrix_jobs[job_idx][
+                "reason_for_staging_redeploy"
+            ] = staging_job["reason_for_redeploy"]
+        else:
+            # A job with a matching cluster name doesn't exist, this is because its
+            # support chart doesn't need upgrading. We create a new job in that will
+            # upgrade the staging deployment for this cluster, but not the support
+            # chart.
+            new_job = {
+                "cluster_name": staging_job["cluster_name"],
+                "provider": staging_job["provider"],
+                "upgrade_staging": "true",
+                "reason_for_staging_redeploy": staging_job["reason_for_redeploy"],
+                "upgrade_support": "false",
+                "reason_for_support_redeploy": "",
+            }
+            support_and_staging_matrix_jobs.append(new_job)
+
+    return prod_hub_matrix_jobs, support_and_staging_matrix_jobs
 
 
 def pretty_print_matrix_jobs(

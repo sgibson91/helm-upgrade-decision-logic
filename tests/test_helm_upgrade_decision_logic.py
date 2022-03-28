@@ -5,11 +5,11 @@ from unittest import TestCase
 from ruamel.yaml import YAML
 
 from mymodule.helm_upgrade_decision_logic import (
-    assign_staging_matrix_jobs,
     discover_modified_common_files,
     generate_hub_matrix_jobs,
     generate_support_matrix_jobs,
     get_all_cluster_yaml_files,
+    move_staging_jobs_to_staging_matrix,
 )
 
 yaml = YAML(typ="safe", pure=True)
@@ -302,3 +302,114 @@ def test_discover_modified_common_files_support_helm_chart():
 
     assert upgrade_all_clusters
     assert not upgrade_all_hubs
+
+
+def test_move_staging_jobs_to_staging_matrix_job_exists():
+    input_hub_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "staging",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "hub1",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+    ]
+    input_support_staging_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "true",
+            "reason_for_support_redeploy": "cluster.yaml file was modified",
+        }
+    ]
+
+    expected_hub_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "hub1",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+    ]
+    expected_support_staging_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "true",
+            "reason_for_support_redeploy": "cluster.yaml file was modified",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "cluster.yaml file was modified",
+        }
+    ]
+
+    (
+        result_hub_matrix_jobs,
+        result_support_staging_matrix_jobs,
+    ) = move_staging_jobs_to_staging_matrix(
+        input_hub_matrix_jobs, input_support_staging_matrix_jobs
+    )
+
+    case.assertCountEqual(result_hub_matrix_jobs, expected_hub_matrix_jobs)
+    case.assertCountEqual(
+        result_support_staging_matrix_jobs, expected_support_staging_matrix_jobs
+    )
+
+    assert "upgrade_staging" in result_support_staging_matrix_jobs[0].keys()
+    assert "reason_for_staging_redeploy" in result_support_staging_matrix_jobs[0].keys()
+
+
+def test_move_staging_jobs_to_staging_matrix_job_does_not_exist():
+    input_hub_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "staging",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "hub1",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+    ]
+    input_support_staging_matrix_jobs = []
+
+    expected_hub_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "hub_name": "hub1",
+            "reason_for_redeploy": "cluster.yaml file was modified",
+        },
+    ]
+    expected_support_staging_matrix_jobs = [
+        {
+            "cluster_name": "cluster1",
+            "provider": "gcp",
+            "upgrade_support": "false",
+            "reason_for_support_redeploy": "",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "cluster.yaml file was modified",
+        }
+    ]
+
+    (
+        result_hub_matrix_jobs,
+        result_support_staging_matrix_jobs,
+    ) = move_staging_jobs_to_staging_matrix(
+        input_hub_matrix_jobs, input_support_staging_matrix_jobs
+    )
+
+    case.assertCountEqual(result_hub_matrix_jobs, expected_hub_matrix_jobs)
+    case.assertCountEqual(
+        result_support_staging_matrix_jobs, expected_support_staging_matrix_jobs
+    )
+
+    assert "upgrade_staging" in result_support_staging_matrix_jobs[0].keys()
+    assert "reason_for_staging_redeploy" in result_support_staging_matrix_jobs[0].keys()
