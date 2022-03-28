@@ -131,87 +131,58 @@ def test_generate_hub_matrix_jobs_all_hubs():
         "reason_for_redeploy": "cluster.yaml file was modified",
     }
 
-    modified_files = {
-        Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/hub1.values.yaml"),
-        Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/cluster.yaml"),
-    }
-
-    expected_matrix_jobs = [
-        {
-            "provider": "gcp",
-            "cluster_name": "cluster1",
-            "hub_name": "staging",
-            "reason_for_redeploy": "cluster.yaml file was modified",
-        },
-        {
-            "provider": "gcp",
-            "cluster_name": "cluster1",
-            "hub_name": "hub1",
-            "reason_for_redeploy": "cluster.yaml file was modified",
-        },
-        {
-            "provider": "gcp",
-            "cluster_name": "cluster1",
-            "hub_name": "hub2",
-            "reason_for_redeploy": "cluster.yaml file was modified",
-        },
-        {
-            "provider": "gcp",
-            "cluster_name": "cluster1",
-            "hub_name": "hub3",
-            "reason_for_redeploy": "cluster.yaml file was modified",
-        },
+    reasons = [
+        "cluster.yaml file was modified",
+        "Core infrastructure has been modified",
+        "Core infrastructure has been modified",
     ]
+    bool_options = [(True, False), (False, True), (True, True)]
 
-    result_matrix_jobs_1 = generate_hub_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info,
-        modified_files,
-        upgrade_all_hubs_on_this_cluster=True,
-    )
-    result_matrix_jobs_2 = generate_hub_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info,
-        modified_files,
-        upgrade_all_hubs_on_all_clusters=True,
-    )
-    result_matrix_jobs_3 = generate_hub_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info,
-        modified_files,
-        upgrade_all_hubs_on_this_cluster=True,
-        upgrade_all_hubs_on_all_clusters=True,
-    )
+    for reason, bool_option in zip(reasons, bool_options):
+        expected_matrix_jobs = [
+            {
+                "provider": "gcp",
+                "cluster_name": "cluster1",
+                "hub_name": "staging",
+                "reason_for_redeploy": reason,
+            },
+            {
+                "provider": "gcp",
+                "cluster_name": "cluster1",
+                "hub_name": "hub1",
+                "reason_for_redeploy": reason,
+            },
+            {
+                "provider": "gcp",
+                "cluster_name": "cluster1",
+                "hub_name": "hub2",
+                "reason_for_redeploy": reason,
+            },
+            {
+                "provider": "gcp",
+                "cluster_name": "cluster1",
+                "hub_name": "hub3",
+                "reason_for_redeploy": reason,
+            },
+        ]
 
-    case.assertCountEqual(result_matrix_jobs_1, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_1, list)
-    assert isinstance(result_matrix_jobs_1[0], dict)
+        result_matrix_jobs = generate_hub_matrix_jobs(
+            cluster_file,
+            cluster_config,
+            cluster_info,
+            set(),
+            upgrade_all_hubs_on_this_cluster=bool_option[0],
+            upgrade_all_hubs_on_all_clusters=bool_option[1],
+        )
 
-    case.assertCountEqual(result_matrix_jobs_2, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_2, list)
-    assert isinstance(result_matrix_jobs_2[0], dict)
+        case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
+        assert isinstance(result_matrix_jobs, list)
+        assert isinstance(result_matrix_jobs[0], dict)
 
-    case.assertCountEqual(result_matrix_jobs_3, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_3, list)
-    assert isinstance(result_matrix_jobs_3[0], dict)
-
-    assert "provider" in result_matrix_jobs_1[0].keys()
-    assert "cluster_name" in result_matrix_jobs_1[0].keys()
-    assert "hub_name" in result_matrix_jobs_1[0].keys()
-    assert "reason_for_redeploy" in result_matrix_jobs_1[0].keys()
-
-    assert "provider" in result_matrix_jobs_2[0].keys()
-    assert "cluster_name" in result_matrix_jobs_2[0].keys()
-    assert "hub_name" in result_matrix_jobs_2[0].keys()
-    assert "reason_for_redeploy" in result_matrix_jobs_2[0].keys()
-
-    assert "provider" in result_matrix_jobs_3[0].keys()
-    assert "cluster_name" in result_matrix_jobs_3[0].keys()
-    assert "hub_name" in result_matrix_jobs_3[0].keys()
-    assert "reason_for_redeploy" in result_matrix_jobs_3[0].keys()
+        assert "provider" in result_matrix_jobs[0].keys()
+        assert "cluster_name" in result_matrix_jobs[0].keys()
+        assert "hub_name" in result_matrix_jobs[0].keys()
+        assert "reason_for_redeploy" in result_matrix_jobs[0].keys()
 
 
 def test_generate_support_matrix_jobs_one_cluster():
@@ -252,7 +223,6 @@ def test_generate_support_matrix_jobs_one_cluster():
     assert "cluster_name" in result_matrix_jobs[0].keys()
     assert "upgrade_support" in result_matrix_jobs[0].keys()
     assert "reason_for_support_redeploy" in result_matrix_jobs[0].keys()
-    assert result_matrix_jobs[0]["upgrade_support"] == "true"
 
 
 def test_generate_support_matrix_jobs_all_clusters():
@@ -265,74 +235,43 @@ def test_generate_support_matrix_jobs_all_clusters():
     cluster_info = {
         "cluster_name": cluster_config.get("name", {}),
         "provider": cluster_config.get("provider", {}),
-        "reason_for_redeploy": "",
+        "reason_for_redeploy": "cluster.yaml file was modified",
     }
 
-    modified_file = {
-        Path(os.getcwd()).joinpath("tests/test-clusters/cluster1/support.values.yaml"),
-    }
-
-    expected_matrix_jobs = [
-        {
-            "provider": "gcp",
-            "cluster_name": "cluster1",
-            "upgrade_support": "true",
-            "reason_for_support_redeploy": "Support helm chart has been modified",
-        }
+    reasons = [
+        "cluster.yaml file was modified",
+        "Support helm chart has been modified",
+        "Support helm chart has been modified",
     ]
+    bool_options = [(True, False), (False, True), (True, True)]
 
-    result_matrix_jobs_1 = generate_support_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info.copy(),
-        modified_file,
-        upgrade_support_on_this_cluster=True,
-    )
-    result_matrix_jobs_2 = generate_support_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info.copy(),
-        modified_file,
-        upgrade_support_on_all_clusters=True,
-    )
-    result_matrix_jobs_3 = generate_support_matrix_jobs(
-        cluster_file,
-        cluster_config,
-        cluster_info.copy(),
-        modified_file,
-        upgrade_support_on_this_cluster=True,
-        upgrade_support_on_all_clusters=True,
-    )
+    for reason, bool_option in zip(reasons, bool_options):
+        expected_matrix_jobs = [
+            {
+                "provider": "gcp",
+                "cluster_name": "cluster1",
+                "upgrade_support": "true",
+                "reason_for_support_redeploy": reason,
+            }
+        ]
 
-    case.assertCountEqual(result_matrix_jobs_1, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_1, list)
-    assert isinstance(result_matrix_jobs_1[0], dict)
+        result_matrix_jobs = generate_support_matrix_jobs(
+            cluster_file,
+            cluster_config,
+            cluster_info.copy(),
+            set(),
+            upgrade_support_on_this_cluster=bool_option[0],
+            upgrade_support_on_all_clusters=bool_option[1],
+        )
 
-    case.assertCountEqual(result_matrix_jobs_2, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_2, list)
-    assert isinstance(result_matrix_jobs_2[0], dict)
+        case.assertCountEqual(result_matrix_jobs, expected_matrix_jobs)
+        assert isinstance(result_matrix_jobs, list)
+        assert isinstance(result_matrix_jobs[0], dict)
 
-    case.assertCountEqual(result_matrix_jobs_3, expected_matrix_jobs)
-    assert isinstance(result_matrix_jobs_3, list)
-    assert isinstance(result_matrix_jobs_3[0], dict)
-
-    assert "provider" in result_matrix_jobs_1[0].keys()
-    assert "cluster_name" in result_matrix_jobs_1[0].keys()
-    assert "upgrade_support" in result_matrix_jobs_1[0].keys()
-    assert "reason_for_support_redeploy" in result_matrix_jobs_1[0].keys()
-    assert result_matrix_jobs_1[0]["upgrade_support"] == "true"
-
-    assert "provider" in result_matrix_jobs_2[0].keys()
-    assert "cluster_name" in result_matrix_jobs_2[0].keys()
-    assert "upgrade_support" in result_matrix_jobs_2[0].keys()
-    assert "reason_for_support_redeploy" in result_matrix_jobs_2[0].keys()
-    assert result_matrix_jobs_2[0]["upgrade_support"] == "true"
-
-    assert "provider" in result_matrix_jobs_3[0].keys()
-    assert "cluster_name" in result_matrix_jobs_3[0].keys()
-    assert "upgrade_support" in result_matrix_jobs_3[0].keys()
-    assert "reason_for_support_redeploy" in result_matrix_jobs_3[0].keys()
-    assert result_matrix_jobs_3[0]["upgrade_support"] == "true"
+        assert "provider" in result_matrix_jobs[0].keys()
+        assert "cluster_name" in result_matrix_jobs[0].keys()
+        assert "upgrade_support" in result_matrix_jobs[0].keys()
+        assert "reason_for_support_redeploy" in result_matrix_jobs[0].keys()
 
 
 def test_discover_modified_common_files_hub_helm_charts():

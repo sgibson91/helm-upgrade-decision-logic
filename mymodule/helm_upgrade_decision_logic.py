@@ -149,7 +149,9 @@ def generate_hub_matrix_jobs(
             matrix_job["hub_name"] = hub["name"]
 
             if upgrade_all_hubs_on_all_clusters:
-                cluster_info["reason_for_redeploy"] = "Core infrastructure has been modified"
+                cluster_info[
+                    "reason_for_redeploy"
+                ] = "Core infrastructure has been modified"
 
             matrix_jobs.append(matrix_job)
 
@@ -169,9 +171,10 @@ def generate_hub_matrix_jobs(
                 # upgraded
                 matrix_job = cluster_info.copy()
                 matrix_job["hub_name"] = hub["name"]
-                matrix_job["reason_for_redeploy"] = (
-                    "Following helm chart values files were modified: "
-                    + ", ".join([path.name for path in intersection])
+                matrix_job[
+                    "reason_for_redeploy"
+                ] = "Following helm chart values files were modified: " + ", ".join(
+                    [path.name for path in intersection]
                 )
                 matrix_jobs.append(matrix_job)
 
@@ -250,9 +253,10 @@ def generate_support_matrix_jobs(
             if intersection:
                 matrix_job = cluster_info.copy()
                 matrix_job["upgrade_support"] = "true"
-                matrix_job["reason_for_support_redeploy"] = (
-                    "Following helm chart values files were modified: "
-                    + ", ".join([path.name for path in intersection])
+                matrix_job[
+                    "reason_for_support_redeploy"
+                ] = "Following helm chart values files were modified: " + ", ".join(
+                    [path.name for path in intersection]
                 )
                 matrix_jobs.append(matrix_job)
 
@@ -561,7 +565,9 @@ def main():
         # Add these matrix jobs as output variables for use in another job
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
         print(f"::set-output name=prod-hub-matrix-jobs::{prod_hub_matrix_jobs}")
-        print(f"::set-output name=support-and-staging-matrix-jobs::{support_and_staging_matrix_jobs}")
+        print(
+            f"::set-output name=support-and-staging-matrix-jobs::{support_and_staging_matrix_jobs}"
+        )
 
 
 if __name__ == "__main__":
