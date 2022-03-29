@@ -595,10 +595,18 @@ def main():
             )
         )
 
-    # this needs to be a better comment v
-    # Ensure that the matrix job definitions conform to schema
-    prod_hub_matrix_jobs, support_and_staging_matrix_jobs = assign_staging_matrix_jobs(
+    # Clean up the matrix jobs
+    (
+        prod_hub_matrix_jobs,
+        support_and_staging_matrix_jobs,
+    ) = move_staging_jobs_to_staging_matrix(
         prod_hub_matrix_jobs, support_and_staging_matrix_jobs
+    )
+    support_and_staging_matrix_jobs = ensure_support_staging_jobs_have_correct_keys(
+        support_and_staging_matrix_jobs, prod_hub_matrix_jobs
+    )
+    support_and_staging_matrix_jobs = assign_staging_jobs_for_missing_clusters(
+        support_and_staging_matrix_jobs, prod_hub_matrix_jobs
     )
 
     # The existence of the CI environment variable is an indication that we are running
