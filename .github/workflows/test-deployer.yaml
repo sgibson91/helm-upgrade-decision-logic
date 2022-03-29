@@ -5,13 +5,13 @@ on:
     branches:
       - main
     paths:
-      - "**.py"
+      - "mymodule/**"
       - "tests/**"
   pull_request:
     branches:
       - main
     paths:
-      - "**.py"
+      - "mymodule/**"
       - "tests/**"
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install -U pip
-          python -m pip install ruamel.yaml rich pytest pytest-env
+          python -m pip install ruamel.yaml rich pytest
       - name: Run tests
         run: |
           python -m pytest -vvv --color=yes

@@ -1,30 +1,26 @@
-name: Decide which clusters/hubs to run helm upgrade for and create matrix jobs
+name: Deploy hubs
 
 on:
   push:
     branches:
       - main
     paths:
-      - "**values.yaml"
-      - "**cluster.yaml"
-      - "helm-charts/basehub/**"
-      - "helm-charts/daskhub/**"
-      - "helm-charts/support/**"
-      - ".github/workflows/**"
+      - "**/*.yaml"
+      - "mymodule/**"
   pull_request:
     branches:
       - main
     paths:
-      - "**values.yaml"
-      - "**cluster.yaml"
-      - "helm-charts/basehub/**"
-      - "helm-charts/daskhub/**"
-      - "helm-charts/support/**"
-      - ".github/workflows/**"
+      - "**/*.yaml"
+      - "mymodule/**"
 
 jobs:
-  filepaths:
+  generate-jobs:
     runs-on: ubuntu-latest
+    outputs:
+      prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.prod-hub-matrix-jobs }}
+      support-and-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.support-and-staging-matrix-jobs }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -44,19 +40,39 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run python script
+        id: generated-jobs
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}"
-
-      - name: Echo hub matrix jobs
-        run: |
-          echo ${{ toJson(env.HUB_MATRIX_JOBS) }}
-
-      - name: Echo support matrix jobs
-        run: |
-          echo ${{ toJson(env.SUPPORT_MATRIX_JOBS) }}
 
       - name: Run python script with pretty-print
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
+
+  support-staging-jobs:
+    runs-on: ubuntu-latest
+    needs: generate-jobs
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ fromJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
+    steps:
+      - run: |
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Upgrade Support?: ${{ matrix.jobs.upgrade_support }}"
+          echo "Upgrade Staging?: ${{ matrix.jobs.upgrade_staging }}"
+
+  hub-jobs:
+    runs-on: ubuntu-latest
+    needs: [generate-jobs, support-staging-jobs]
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ fromJson(needs.generate-jobs.outputs.prod-hub-matrix-jobs) }}
+    steps:
+      - run: |
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Hub name: ${{ matrix.jobs.hub_name }}"
