@@ -266,78 +266,6 @@ def generate_support_matrix_jobs(
     return matrix_jobs
 
 
-def assign_staging_matrix_jobs(
-    hub_matrix_jobs: list,
-    staging_matrix_jobs: list,
-) -> (list, list):
-    """This function ensures that all prod hub jobs will have an associated staging hub
-    job. It also ensures that each job in staging_matrix_jobs takes the following form:
-
-    {
-        "cluster_name": str                 # Name of the cluster
-        "provider": str                     # Name of the cloud provider the cluster runs on
-        "upgrade_support": str(bool)        # Whether to upgrade the support chart for this cluster
-        "reason_for_support_redeploy": str  # Why the support chart needs to be upgraded
-        "upgrade_staging": str(bool)        # Whether the upgrade the staging deployment on this cluster
-        "reason_for_staging_redeploy": str  # Why the staging hub needs to be upgraded
-    }
-
-    Args:
-        hub_matrix_jobs (list[dict]): A list of dictionaries describing matrix jobs to
-            upgrade all hubs regardless of staging/prod status
-        staging_matrix_jobs (list[dict]): A list of dictionaries describing matrix jobs
-            to upgrade just the support chart if necessary
-
-    Returns:
-        hub_matrix_jobs (list[dict]): Transformed list of dictionaries describing matrix
-            jobs to upgrade only production hubs
-        staging_matrix_jobs (list[dict]): Transformed list of dictionaries describing
-            matrix jobs to upgrade staging hubs and the support chart if necessary
-    """
-    # Ensure that for each cluster listed in hub_matrix_jobs, there is an associated job
-    # in staging_matrix_jobs. This is our last-hope catch-all to ensure there are no
-    # prod hub jobs trying to run without an associated support/staging job
-    prod_hub_clusters = {job["cluster_name"] for job in hub_matrix_jobs}
-    support_staging_clusters = {job["cluster_name"] for job in staging_matrix_jobs}
-    missing_clusters = prod_hub_clusters.difference(support_staging_clusters)
-
-    if missing_clusters:
-        # Generate support/staging jobs for clusters that don't have them but do have
-        # prod hub jobs. We assume they are mising because neither the support chart
-        # nor staging hub needed an upgrade. We set upgrade_support to False. However,
-        # if prod hubs need upgrading, then we should upgrade staging so set that to
-        # True.
-        for missing_cluster in missing_clusters:
-            provider = next(
-                (
-                    hub["provider"]
-                    for hub in hub_matrix_jobs
-                    if hub["cluster_name"] == missing_cluster
-                ),
-                None,
-            )
-            prod_hubs = [
-                hub["hub_name"]
-                for hub in hub_matrix_jobs
-                if hub["cluster_name"] == missing_cluster
-            ]
-
-            new_job = {
-                "cluster_name": missing_cluster,
-                "provider": provider,
-                "upgrade_support": "false",
-                "reason_for_support_redeploy": "",
-                "upgrade_staging": "true",
-                "reason_for_staging_redeploy": (
-                    "Following prod hubs require redeploy: " + ", ".join(prod_hubs)
-                ),
-            }
-
-            staging_matrix_jobs.append(new_job)
-
-    return hub_matrix_jobs, staging_matrix_jobs
-
-
 def move_staging_jobs_to_staging_matrix(
     all_hub_matrix_jobs: list, support_and_staging_matrix_jobs: list
 ) -> (list, list):
@@ -473,6 +401,68 @@ def ensure_support_staging_jobs_have_correct_keys(
                 # do not upgrade staging
                 job["upgrade_staging"] = "false"
                 job["reason_for_staging_redeploy"] = ""
+
+    return support_and_staging_matrix_jobs
+
+
+def assign_staging_jobs_for_missing_clusters(
+    support_and_staging_matrix_jobs: list, prod_hub_matrix_jobs: list
+) -> list:
+    """Ensure that for each cluster listed in prod_hub_matrix_jobs, there is an
+    associated job in support_and_staging_matrix_jobs. This is our last-hope catch-all
+    to ensure there are no prod hub jobs trying to run without an associated
+    support/staging job.
+
+    Args:
+        support_and_staging_matrix_jobs (list[dict]): A list of dictionaries
+            representing jobs to upgrade the support chart and staging hub on clusters
+            that require it.
+        prod_hub_matrix_jobs (list[dict]): A list of dictionaries representing jobs to
+            upgrade production hubs that require it.
+
+    Returns:
+        support_and_staging_matrix_jobs (list[dict]): Updated to ensure any clusters
+            missing present in prod_hub_matrix_jobs but missing from
+            support_and_staging_matrix_jobs now have an associated support/staging job.
+    """
+    prod_hub_clusters = {job["cluster_name"] for job in prod_hub_matrix_jobs}
+    support_staging_clusters = {
+        job["cluster_name"] for job in support_and_staging_matrix_jobs
+    }
+    missing_clusters = prod_hub_clusters.difference(support_staging_clusters)
+
+    if missing_clusters:
+        # Generate support/staging jobs for clusters that don't have them but do have
+        # prod hub jobs. We assume they are missing because neither the support chart
+        # nor staging hub needed an upgrade. We set upgrade_support to False. However,
+        # if prod hubs need upgrading, then we should upgrade staging so set that to
+        # True.
+        for missing_cluster in missing_clusters:
+            provider = next(
+                (
+                    hub["provider"]
+                    for hub in prod_hub_matrix_jobs
+                    if hub["cluster_name"] == missing_cluster
+                ),
+                None,
+            )
+            prod_hubs = [
+                hub["hub_name"]
+                for hub in prod_hub_matrix_jobs
+                if hub["cluster_name"] == missing_cluster
+            ]
+
+            new_job = {
+                "cluster_name": missing_cluster,
+                "provider": provider,
+                "upgrade_support": "false",
+                "reason_for_support_redeploy": "",
+                "upgrade_staging": "true",
+                "reason_for_staging_redeploy": (
+                    "Following prod hubs require redeploy: " + ", ".join(prod_hubs)
+                ),
+            }
+            support_and_staging_matrix_jobs.append(new_job)
 
     return support_and_staging_matrix_jobs
 

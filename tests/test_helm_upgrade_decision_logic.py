@@ -5,6 +5,7 @@ from unittest import TestCase
 from ruamel.yaml import YAML
 
 from mymodule.helm_upgrade_decision_logic import (
+    assign_staging_jobs_for_missing_clusters,
     discover_modified_common_files,
     ensure_support_staging_jobs_have_correct_keys,
     generate_hub_matrix_jobs,
@@ -476,6 +477,71 @@ def test_ensure_support_staging_jobs_have_correct_keys_hubs_dont_exist():
 
     result_support_staging_jobs = ensure_support_staging_jobs_have_correct_keys(
         input_support_staging_jobs, []
+    )
+
+    case.assertCountEqual(result_support_staging_jobs, expected_support_staging_jobs)
+
+
+def test_assign_staging_jobs_for_missing_clusters_is_missing():
+    input_prod_jobs = [
+        {
+            "provider": "gcp",
+            "cluster_name": "cluster1",
+            "hub_name": "hub1",
+        },
+    ]
+
+    expected_support_staging_jobs = [
+        {
+            "provider": "gcp",
+            "cluster_name": "cluster1",
+            "upgrade_support": "false",
+            "reason_for_support_redeploy": "",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "Following prod hubs require redeploy: hub1",
+        }
+    ]
+
+    result_support_staging_jobs = assign_staging_jobs_for_missing_clusters(
+        [], input_prod_jobs
+    )
+
+    case.assertCountEqual(result_support_staging_jobs, expected_support_staging_jobs)
+
+
+def test_assign_staging_jobs_for_missing_clusters_is_present():
+    input_prod_jobs = [
+        {
+            "provider": "gcp",
+            "cluster_name": "cluster1",
+            "hub_name": "hub1",
+        },
+    ]
+
+    input_support_staging_jobs = [
+        {
+            "provider": "gcp",
+            "cluster_name": "cluster1",
+            "upgrade_support": "false",
+            "reason_for_support_redeploy": "",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "Following prod hubs require redeploy: hub1",
+        }
+    ]
+
+    expected_support_staging_jobs = [
+        {
+            "provider": "gcp",
+            "cluster_name": "cluster1",
+            "upgrade_support": "false",
+            "reason_for_support_redeploy": "",
+            "upgrade_staging": "true",
+            "reason_for_staging_redeploy": "Following prod hubs require redeploy: hub1",
+        }
+    ]
+
+    result_support_staging_jobs = assign_staging_jobs_for_missing_clusters(
+        input_support_staging_jobs, input_prod_jobs
     )
 
     case.assertCountEqual(result_support_staging_jobs, expected_support_staging_jobs)
