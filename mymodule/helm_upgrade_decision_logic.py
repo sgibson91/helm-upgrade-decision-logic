@@ -149,7 +149,7 @@ def generate_hub_matrix_jobs(
             matrix_job["hub_name"] = hub["name"]
 
             if upgrade_all_hubs_on_all_clusters:
-                cluster_info[
+                matrix_job[
                     "reason_for_redeploy"
                 ] = "Core infrastructure has been modified"
 
