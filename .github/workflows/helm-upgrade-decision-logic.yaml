@@ -18,55 +18,71 @@ jobs:
   generate-jobs:
     runs-on: ubuntu-latest
     outputs:
+      support-matrix-jobs: ${{ steps.generated-jobs.outputs.support-matrix-jobs}}
+      staging-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.staging-hub-matrix-jobs }}
       prod-hub-matrix-jobs: ${{ steps.generated-jobs.outputs.prod-hub-matrix-jobs }}
-      support-and-staging-matrix-jobs: ${{ steps.generated-jobs.outputs.support-and-staging-matrix-jobs }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.9
+          python-version: "3.13"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ruamel.yaml rich
+          python -m pip install -r requirements.txt
 
-      - uses: jitterbit/get-changed-files@v1
+      - uses: dorny/paths-filter@v3
         id: changed-files
         with:
-          format: space-delimited
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ""
+          list-files: csv
+          filters: |
+            changed:
+              - added|modified: helm-charts/**
+              - added|modified: config/clusters/**
 
-      - name: Run python script
-        id: generated-jobs
+      - id: generated-jobs
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
-          python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}"
+          python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.changed_files }}"
 
       - name: Run python script with pretty-print
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
           python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.added_modified }}" --pretty-print
 
-  support-staging-jobs:
+  upgrade-support:
     runs-on: ubuntu-latest
-    needs: generate-jobs
+    needs: [generate-jobs]
     strategy:
       fail-fast: false
       matrix:
-        jobs: ${{ fromJson(needs.generate-jobs.outputs.support-and-staging-matrix-jobs) }}
+        jobs: ${{ fromJson(needs.generate-jobs.outputs.support-matrix-jobs) }}
     steps:
       - run: |
           echo "Provider: ${{ matrix.jobs.provider }}"
           echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
-          echo "Upgrade Support?: ${{ matrix.jobs.upgrade_support }}"
-          echo "Upgrade Staging?: ${{ matrix.jobs.upgrade_staging }}"
+          echo "Reason for Redeploy: ${{ matrix.jobs.reason_for_redeploy }}"
 
-  hub-jobs:
+  upgrade-staging:
     runs-on: ubuntu-latest
-    needs: [generate-jobs, support-staging-jobs]
+    needs: [generate-jobs, upgrade-support]
+    strategy:
+      fail-fast: false
+      matrix:
+        jobs: ${{ fromJson(needs.generate-jobs.outputs.staging-hub-matrix-jobs) }}
+    steps:
+      - run: |
+          echo "Provider: ${{ matrix.jobs.provider }}"
+          echo "Cluster name: ${{ matrix.jobs.cluster_name }}"
+          echo "Hub name: ${{ matrix.jobs.hub_name }}"
+
+  upgrade-prod:
+    runs-on: ubuntu-latest
+    needs: [generate-jobs, upgrade-support, upgrade-staging]
     strategy:
       fail-fast: false
       matrix:
