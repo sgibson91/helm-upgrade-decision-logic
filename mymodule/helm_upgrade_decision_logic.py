@@ -10,7 +10,7 @@ from rich.table import Table
 from ruamel.yaml import YAML
 
 yaml = YAML(typ="safe", pure=True)
-REPO_ROOT_PATH = Path(__file__).parent.parent.parent
+REPO_ROOT_PATH = Path(__file__).parent.parent
 CONFIG_CLUSTERS_PATH = REPO_ROOT_PATH.joinpath("config/clusters")
 
 
@@ -220,7 +220,7 @@ def generate_hub_matrix_jobs(
 
     staging_hub_matrix_jobs, prod_hub_matrix_jobs = filter_out_staging_hubs(matrix_jobs)
 
-    return matrix_jobs
+    return staging_hub_matrix_jobs, prod_hub_matrix_jobs
 
 
 def generate_support_matrix_jobs(
@@ -448,6 +448,10 @@ def main():
         upgrade_support_on_all_clusters,
         upgrade_all_hubs_on_all_clusters,
     ) = discover_modified_common_files(args.filepaths)
+
+    args.filepaths = [
+        REPO_ROOT_PATH.joinpath(filepath) for filepath in args.filepaths
+    ]
 
     # Get a list of filepaths to target cluster folders
     cluster_files = get_all_cluster_yaml_files()
