@@ -79,6 +79,7 @@ jobs:
       !cancelled() &&
       (github.event_name == 'push' && contains(github.ref, 'main')) &&
       needs.generate-jobs.result == 'success' &&
+      (needs.upgrade-support.result == 'success' || needs.upgrade-support.result == 'skipped') &&
       needs.generate-jobs.outputs.staging-hub-matrix-jobs != ''
     strategy:
       fail-fast: false
