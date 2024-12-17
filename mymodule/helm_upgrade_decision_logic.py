@@ -532,7 +532,7 @@ def main():
         # Add these matrix jobs as output variables for use in another job
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
         with open(env_file, "a") as f:
-            f.write(f"support-matrix-jobs={json.sumps(support_matrix_jobs)}\n")
+            f.write(f"support-matrix-jobs={json.dumps(support_matrix_jobs)}\n")
             f.write(f"staging-hub-matrix-jobs={json.dumps(staging_hub_matrix_jobs)}\n")
             f.write(f"prod-hub-matrix-jobs={json.dumps(prod_hub_matrix_jobs)}")
 
