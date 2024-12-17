@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [generate-jobs]
     if: |
-      (github.event_name ='push' && contains(github.ref, 'main')) &&
+      (github.event_name == 'push' && contains(github.ref, 'main')) &&
       needs.generate-jobs.result == 'success' &&
       needs.generate-jobs.outputs.support-matrix-jobs != '[]'
     strategy:
