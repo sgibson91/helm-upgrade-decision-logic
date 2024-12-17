@@ -44,10 +44,14 @@ jobs:
               - added|modified: helm-charts/**
               - added|modified: config/clusters/**
 
+      - run: |
+          echo "${{ steps.changed-files.outputs }}"
+          echo "${{ steps.changed-files.outputs.changed_files }}"
+
       - id: generated-jobs
         run: |
           # I know, I'm writing the worst Python ever here. I'm just fudging things to get all the workflows running.
-          python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.changed }}"
+          python -m mymodule.helm_upgrade_decision_logic "${{ steps.changed-files.outputs.changed_files }}"
 
       - name: Run python script with pretty-print
         run: |
