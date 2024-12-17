@@ -1,2 +1,4 @@
 jupyterhub:
   thing: thing1
+pv:
+  enabled: true
